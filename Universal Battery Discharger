@@ -1,5 +1,108 @@
 // This is a little simple yet sophisticated Universal Battery Discharger
-// It will give you at least 95% accuracy in mah for your tested battery 
-//
-//
-//
+// It will give you at least 98% accuracy in mah for your tested battery 
+// You only need to change few values for this to work for you. 
+
+
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include "ClickButton.h"
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set my LCD I2C address/ pins
+ClickButton ba(12, LOW, CLICKBTN_PULLUP);
+ClickButton bb(11, LOW, CLICKBTN_PULLUP);
+
+int sec=0;
+int minu=0;
+int hr=0;
+
+int dc=0; //switch for starting or stopping to discharge the battery 0=off; 1=on
+
+int mah=0; //real mah of a lithium battery
+int ma=0; //current current discharging rate
+unsigned long totalwatt=0; //this total watts second
+
+float bv=0;  //voltage of the battery
+char* state="";
+
+unsigned long timer=0;
+unsigned long pstimer=0;
+
+
+void setup() {
+  lcd.begin(16,2); 
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50;  
+  pinMode (A6, INPUT);
+  pinMode (A7, INPUT);
+  pinMode (3, OUTPUT);
+  pinMode (13, OUTPUT); //Onboard LED to show discharge state
+}
+
+void loop() {
+  ba.Update();
+  bb.Update(); 
+
+  digitalWrite (3, dc);  //switch to control start and stop discharge the battery; Connect to the base of a power NPN 
+
+  ////====================================================
+
+  timer=millis();
+  if(timer-pstimer>=1000){  
+    
+    if(dc==1 && ma>1)sec++;               
+    totalwatt=totalwatt+(ma*bv);  // for every second calculate the total watt-Sec because A*V=P, current X voltage = Power
+    mah=totalwatt/3.7/3600;       //real mah= ws/3.7/3600; here is how the math works. 3.7v is the nominal voltage of my lithium battery and 3600 sec=1 hour
+    
+    pstimer=timer;
+  }
+
+  ////====================================================
+
+ if(sec==60){minu++; sec=0;}
+ if(minu==60){hr++; minu=0;}
+  ////====================================================
+
+
+  if(dc==0) {
+    state="OFF"; 
+    digitalWrite (13, LOW);
+  }
+  else {
+    state="ON ";  
+    digitalWrite (13, HIGH);
+  }
+
+  if(bv<2.7){     // cut off discharing when the lithium battery voltage is at 2.7V
+    dc=0;
+  }
+
+  char lineA[17];
+  char x[10];
+  int Read = analogRead(A6);       //voltage reading for a 5w 1 ohm shunt resistor. 1mv drop across this resistor=1ma
+  ma = Read/1024.0*4.6*1000;       // so the voltage is converted to A(current) by multiplying to 1000; because 1v=1000mv=1000ma
+
+  sprintf(lineA, "T:%01d:%02d:%02d %04dma", hr, minu, sec, ma);  // print time and real time current to line one on a 2x16 LCD screen
+  lcd.setCursor (0,0); 
+  lcd.print (lineA);
+
+  char lineB[17];
+  char v[10]; 
+  int Readv = analogRead(A7);               // voltage reading of the connected battery
+  float bufferb = Readv/1024.0*4.6;         // this is the math to convert the raw reading to real voltage; 
+  bv=bufferb;                               //4.6v instead of 5.0v because of my USB port support that much.
+                                            // This number need to be adjusted using a multimeter to achieve better accurracy. 
+
+  dtostrf(bufferb, 2, 1, v);
+  sprintf(lineB, "V%s %s %04dmah", v, state, mah);  // print battery voltage and capacity in mah to line two on a 2x16 LCD screen
+  lcd.setCursor (0,1); 
+  lcd.print (lineB);  
+
+  ////====================================================  
+
+  if(ba.clicks==1) dc=!dc;            // a little button to turn on/off the discharger
+  if(bb.clicks==1) ;
+
+  if(ba.clicks==-1);
+  if(bb.clicks==-1){dc=0; hr=0; minu=0; sec=0; mah=0; totalwatt=0;}  // another button to reset everything
+}
+
