@@ -6,6 +6,8 @@
 // 3.6 or 3.7v for lithium; 1.2v for NiMH; 2.0v for lead acid battery; (a 6v lead acid battery has 3 cells, so 6v for it)
 
 
+///////////////////////////////////////////////////////////////////////////////
+
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "ClickButton.h"
