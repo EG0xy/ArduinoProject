@@ -1,0 +1,106 @@
+// My code collections
+
+
+void setup() {
+}
+
+void loop() {
+}
+
+
+
+/*
+
+  --convert float to char ---------------------------------------------------------------------------------------------------------------
+  
+  char ftc[17];
+  char x[10];
+  int Read = analogRead(A0);
+  float buffer = Read/1024.0*5.0;
+
+  dtostrf(buffer, 3, 2, x);
+  sprintf(ftc, "%s", x);
+  lcd.setCursor (0,1); 
+  lcd.print (ftc);   
+
+  --I2C LCD -----------------------------------------------------------------------------------------------------------------------------------------------
+
+  LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address/ pins
+
+  --Text print with condition ---------------------------------------------------------------------------------------------------------------------------
+  
+  char* ap="";
+  
+  --loop()
+  if(halfDay==0) ap="AM";
+  else ap="PM";  
+ 
+  char x[17];
+  sprintf( x, "%s", ap);
+  lcd.setCursor (0,0); 
+  lcd.print ( x );   
+  
+  -- Custom LCD Icon ---------------------------------------------------------------------------------------------------------------------------
+  
+  byte icon[8] = {
+  0b00100,
+  0b00100,
+  0b01110,
+  0b11111,
+  0b00100,
+  0b01110,
+  0b01110,
+  0b01010};
+
+  --setup()
+  lcd.createChar(1, icon);      // 1 = 0x01
+  
+  --loop()
+  char x [16];
+  sprintf(x, "%c", 0x01); 
+  lcd.setCursor (0,0); 
+  lcd.print (x);
+  
+  
+  -- SPI -----------------------------------------------------------------------------------------------------------------------------------------
+ 
+  #include <SPI.h>
+  
+  --setup()
+  pinMode (10, OUTPUT);        //cs
+  SPI.begin();
+  
+  --loop()
+  digitalWrite(10, LOW);      //start
+  SPI.transfer(0x11);         //address
+  SPI.transfer(123);          // value
+  digitalWrite(10, HIGH);     //end  
+  
+  
+  -- Button ----------------------------------------------------------------------------------------------------------------------------------------- 
+  
+   #include "ClickButton.h" 
+ 
+  ClickButton ba(2, LOW, CLICKBTN_PULLUP);
+  ClickButton bb(3, LOW, CLICKBTN_PULLUP);
+  ClickButton bc(4, LOW, CLICKBTN_PULLUP);
+  
+  --setup()
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50;    
+  bc.multiclickTime = 50; 
+
+  --loop()
+  ba.Update();
+  bb.Update();  
+  bc.Update(); 
+  
+  if(ba.clicks==1) ;
+  if(bb.clicks==1) ;  
+  if(bc.clicks==1) ;
+  
+  if(ba.clicks==-1);
+  if(bb.clicks==-1);
+  if(bc.clicks==-1);  
+  
+*/  
