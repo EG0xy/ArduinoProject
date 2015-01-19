@@ -5,7 +5,14 @@
 // current X voltage = watt ; watt/ nominal voltage of the battery=mah!!!
 // 3.6 or 3.7v for lithium; 1.2v for NiMH; 2.0v for lead acid battery; (a 6v lead acid battery has 3 cells, so 6v for it)
 
-
+// Connections::
+//a power NPN transistor is use as a switch: 
+//its collector connected to + of the battery; 
+//emitter connected to a 1 ohm 5 watts resistor then to the ground.
+//base connected to a 500omh resistor, then to a 5k pot, then to the digital Pin 3 in my arduino Nano
+//
+//A7 (analogPin) is connected to the collector, which is the same thing as the + of the battery
+//A6 (analogPin) is connected to the emmiter, which measures the voltage across the shunt resistor
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <Wire.h>
