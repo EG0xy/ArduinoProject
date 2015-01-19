@@ -1,7 +1,9 @@
 // This is a little simple yet sophisticated Universal Battery Discharger
 // It will give you at least 98% accuracy in mah for your tested battery 
 // You only need to change few values for this to work for you. 
-
+// It works by using a simple 1 ohm 5 watts resistor as a shunt resistor to calculate the current
+// current X voltage = watt ; watt/ nominal voltage of the battery=mah!!!
+// 3.6 or 3.7v for lithium; 1.2v for NiMH; 2.0v for lead acid battery; (a 6v lead acid battery has 3 cells, so 6v for it)
 
 
 #include <Wire.h>
