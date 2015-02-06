@@ -1,0 +1,61 @@
+/** How to get accurate analog reading from arduino using internal reference 1.1v!!!
+
+I am using only 0-1.1v to measure any voltage range by using a 2 resistors "Voltage Divider" circuit!
+
+I only need to measure 0-5 volt for this project. 
+I pick a 10k ohm resistor as my input resistor R1: 5v max input, 1.1v max ouput, then I need a 2.82k ohm resistor as my second resistor R2. 
+Vout=Vin (R2/(R1+R2))
+
+Do the math:
+if you need to measure
+0-30v range: use R1=10k; R2=380ohm
+0-50V range: use R1=10k; R2=224ohm
+
+easy!! very accurate!! 
+**/
+
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set my LCD I2C address/ pins
+
+int  total;
+int count=0;
+int average;
+
+void setup() {
+  lcd.begin(16,2);   
+  pinMode (A0, INPUT);
+  analogReference (INTERNAL);    // use internal 1.1v as reference!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+}
+
+void loop() {
+  //-------------------------------------------------------- read from analog pin, smooth the result
+  int reada=analogRead (A0);
+  total=reada+total;
+  count++;
+  if(count==30){
+    average=total/count;
+    count=0;
+    total=0;
+  }
+  //--------------------------------------------------------^^
+  
+  float buffer= (average/1024.0)*5.03; // here is everything, You do need to calibrate the max voltage by compare the readout to a multimeter; 5.03 is my result here.
+
+
+  //-------------------------------------------------------- convert float and print it out to a LCD
+  char x[10];
+  dtostrf(buffer, 3, 2, x);
+
+  char printo[17];
+  sprintf(printo, "Test: %s Volt", x);
+  lcd.setCursor (0,1); 
+  lcd.print (printo);     
+
+  lcd.setCursor (0,0); 
+  lcd.print (average);   
+  //--------------------------------------------------------^^
+}
+
+
