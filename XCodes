@@ -1,0 +1,15 @@
+
+Up::
+send {Del}
+Sleep 100
+send {Enter}
+return
+
+
+XButton1::
+send {Del}
+Sleep 100
+send {Enter}
+return
+
+-----------------------------
