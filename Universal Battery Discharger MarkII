@@ -1,0 +1,194 @@
+#include <Wire.h>
+#include <LiquidCrystal.h>
+#include "ClickButton.h"
+LiquidCrystal lcd(9,8,7,6,5,4);
+ClickButton ba(A2, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A3, LOW, CLICKBTN_PULLUP);
+
+#define bt 0x01
+byte BT[8] = {
+  0b01110,
+  0b11011,
+  0b10001,
+  0b11111,
+  0b10001,
+  0b11111,
+  0b10001,
+  0b11111
+};
+
+int sec=0;
+int minn=0;
+int hr=0;
+unsigned long timer=0;
+unsigned long pstimer=0;
+
+int dc=0;
+int led=0;
+int menu=0;
+
+int btmode=0; //0 for lithium battery, 1 for Ni–MH
+float novolt; // lithium 3.7; Ni–MH 1.2  nominal voltage
+
+int percent;
+int mah;
+unsigned long totalwatt=0;
+
+int matotal;
+int vototal;
+
+int count=0;
+int maaverage;
+int voaverage;
+
+int current; 
+float voltage;
+//========================================================================================================================
+
+void setup() {  
+  lcd.begin(16,2);
+  lcd.createChar(1, BT);  
+  analogReference (INTERNAL);    
+
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50;  
+
+  pinMode (A4, INPUT); //input v
+  pinMode (A5, INPUT); //current
+
+  pinMode (10, OUTPUT); //led
+  pinMode (11, OUTPUT); //trans
+  pinMode (13, OUTPUT);  
+  //   
+}
+
+
+//========================================================================================================================
+void loop() {
+
+  ba.Update();
+  bb.Update();   
+
+  digitalWrite (10, led); // flashing led
+
+    if(dc==0)  digitalWrite (11, LOW); // switch to turn on/off discharger  
+  else digitalWrite (11, HIGH);
+
+//===============================================================
+  if(btmode==0){                             // lithium mode
+    if(voltage<2.7)  dc=0; 
+    novolt=3.7;
+
+    if(voltage>3.5 && dc==0){  
+      digitalWrite (13, HIGH);
+    }    
+    else
+      digitalWrite (13, LOW);   
+
+  } 
+
+  else {                             //  1.2-1.5 mode
+    if(voltage<0.9 || voltage>2)  dc=0; 
+    novolt=1.2;
+    if(voltage>1.0 && voltage<1.5 && dc==0){  
+      digitalWrite (13, HIGH);
+    }    
+    else
+      digitalWrite (13, LOW);  
+  }
+
+  //======================================================
+
+  timer= millis();
+  if(timer-pstimer >= 1000){
+
+    if(dc==1 && maaverage>1){
+      sec++; 
+      led=!led; 
+    } 
+    else led=0;          
+    totalwatt=totalwatt+(current*voltage);
+    mah=totalwatt/novolt/3600;  
+
+    pstimer = timer;
+  }  
+
+  if(sec==60){
+    sec=0; 
+    minn++;
+  }
+
+  if(minn==60){
+    minn=0;
+    hr++;
+  } 
+
+  //==============================================================
+
+  int readma=analogRead (A5);
+  int readvo=analogRead (A4);  
+
+  matotal=readma+matotal;
+  vototal=readvo+vototal;
+
+  count++;
+  if(count==30){
+    maaverage=matotal/count;
+    voaverage=vototal/count;    
+    count=0;
+    matotal=0;
+    vototal=0;
+  }
+
+  current= (maaverage/1024.0)*1.085*1000.0; 
+  voltage= (voaverage/1024.0)*5.093;
+
+
+  char v[10];
+  dtostrf(voltage, 3, 2, v);
+
+  //===============================================================
+  if (menu==0){
+    char lineA[19];
+    sprintf(lineA, "%04dma T:%01d:%02d:%02d", current, hr, minn, sec);
+    lcd.setCursor (0,0); 
+    lcd.print (lineA);     
+
+    char lineB[19];
+    sprintf(lineB, "%c%sv C:%04dmah", bt, v , mah);
+    lcd.setCursor (0,1); 
+    lcd.print (lineB);  
+
+    if(bb.clicks==1) dc=!dc ;
+    if(bb.clicks==-1){
+      dc=0; 
+      hr=0; 
+      minn=0; 
+      sec=0; 
+      mah=0; 
+      totalwatt=0;
+    }  
+  }
+
+  if (menu==1){
+
+    lcd.setCursor (0,0); 
+    lcd.print ("= Battery Type ="); 
+
+    if(btmode==0){
+      lcd.setCursor (0,1); 
+      lcd.print ("Lithium 3.6-4.2v");     
+    }
+    else{
+      lcd.setCursor (0,1); 
+      lcd.print ("NiMH AA 1.2-1.5v");  
+    }
+
+    if(bb.clicks==1) btmode=!btmode ;  
+  }
+  //===============================================================
+
+  if(ba.clicks==1) menu=!menu; 
+  if(ba.clicks==-1);
+
+}
