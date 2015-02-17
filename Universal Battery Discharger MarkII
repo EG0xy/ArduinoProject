@@ -1,3 +1,6 @@
+// This version will test lithium 3.6/3.7 and nimh 1.2-1.5 battery
+
+
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include "ClickButton.h"
@@ -25,6 +28,7 @@ unsigned long pstimer=0;
 
 int dc=0;
 int led=0;
+int ledmode=0;  // 0 solid led; 1 flashing led
 int menu=0;
 
 int btmode=0; //0 for lithium battery, 1 for Ni–MH
@@ -69,7 +73,8 @@ void loop() {
   ba.Update();
   bb.Update();   
 
-  digitalWrite (10, led); // flashing led
+  digitalWrite (13, led); // led indicator
+  digitalWrite (10, btmode); // battery type mode led
 
     if(dc==0)  digitalWrite (11, LOW); // switch to turn on/off discharger  
   else digitalWrite (11, HIGH);
@@ -80,10 +85,10 @@ void loop() {
     novolt=3.7;
 
     if(voltage>3.5 && dc==0){  
-      digitalWrite (13, HIGH);
+      ledmode=0;
     }    
     else
-      digitalWrite (13, LOW);   
+      ledmode=1;
 
   } 
 
@@ -91,12 +96,14 @@ void loop() {
     if(voltage<0.9 || voltage>2)  dc=0; 
     novolt=1.2;
     if(voltage>1.0 && voltage<1.5 && dc==0){  
-      digitalWrite (13, HIGH);
+       ledmode=0;
     }    
     else
-      digitalWrite (13, LOW);  
+      ledmode=1;  
   }
-
+  
+   if(ledmode==0 && dc==0) led=1;
+   if(ledmode==1 && dc==0) led=0; 
   //======================================================
 
   timer= millis();
@@ -104,9 +111,10 @@ void loop() {
 
     if(dc==1 && maaverage>1){
       sec++; 
-      led=!led; 
+      if(ledmode==1) led=!led; 
+      else led=0;        
     } 
-    else led=0;          
+    
     totalwatt=totalwatt+(current*voltage);
     mah=totalwatt/novolt/3600;  
 
@@ -186,9 +194,20 @@ void loop() {
 
     if(bb.clicks==1) btmode=!btmode ;  
   }
+  
+  if (menu==3){
+
+    lcd.setCursor (0,0); 
+    lcd.print ("Built by JZ   "); 
+
+    lcd.setCursor (0,1); 
+    lcd.print ("     2015-Feb-16"); 
+
+    if(bb.clicks==1) menu=0 ;  
+  }  
   //===============================================================
 
   if(ba.clicks==1) menu=!menu; 
-  if(ba.clicks==-1);
+  if(ba.clicks==-1) menu=3;
 
 }
