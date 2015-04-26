@@ -52,18 +52,18 @@ void loop()
   int buffer=(minn*100)+sec;  // turns minute and sec into 4 digit number
   
   
- d1=dg[buffer/1000];          // split 4 digit number to 4 one digit number
- d2=dg[(buffer/100)%10]| dot;
- d3=dg[(buffer/10)%10];
+ d1=dg[buffer/1000]|B10000000;          // split 4 digit number to 4 one digit number
+ d2=dg[(buffer/100)%10];
+ d3=dg[(buffer/10)%10]| dot;
  d4=dg[(buffer%10)];
 
-if(sec%2==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 2 second
+if(sec%10==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 10 second
 
   if(sec==60){sec=0; minn++;}    
   if(minn==60){minn=0;}  
   
   c1=millis(); // second counter
-  if (c1-c2>=1000){  
+  if (c1-c2>=100){  
   sec++; 
   c2=c1;
   }
@@ -78,8 +78,6 @@ if(sec%2==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 2 secon
     digitalWrite(latchPin, LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST, d1);      
     digitalWrite(A1, LOW);    
-    digitalWrite(A2, HIGH); 
-    digitalWrite(A3, HIGH); 
     digitalWrite(A4, HIGH);     
     digitalWrite(latchPin, HIGH);     
     }
@@ -88,9 +86,7 @@ if(sec%2==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 2 secon
     digitalWrite(latchPin, LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST, d2);      
     digitalWrite(A2, LOW);  
-    digitalWrite(A1, HIGH); 
-    digitalWrite(A3, HIGH); 
-    digitalWrite(A4, HIGH);    
+    digitalWrite(A1, HIGH);     
     digitalWrite(latchPin, HIGH);     
     }    
     
@@ -98,9 +94,7 @@ if(sec%2==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 2 secon
     digitalWrite(latchPin, LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST, d3);      
     digitalWrite(A3, LOW); 
-    digitalWrite(A2, HIGH); 
-    digitalWrite(A1, HIGH); 
-    digitalWrite(A4, HIGH);      
+    digitalWrite(A2, HIGH);     
     digitalWrite(latchPin, HIGH);     
     }        
 
@@ -108,9 +102,7 @@ if(sec%2==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 2 secon
     digitalWrite(latchPin, LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST, d4);      
     digitalWrite(A4, LOW);
-    digitalWrite(A2, HIGH); 
-    digitalWrite(A3, HIGH); 
-    digitalWrite(A1, HIGH);      
+    digitalWrite(A3, HIGH);     
     digitalWrite(latchPin, HIGH);     
     }        
         
