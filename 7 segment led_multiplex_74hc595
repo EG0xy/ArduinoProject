@@ -1,0 +1,121 @@
+
+    const byte dg[] =
+    {
+    B00111111, // 0
+    B00000110, // 1
+    B01011011, // 2
+    B01001111, // 3
+    B01100110, // 4
+    B01101101, // 5
+    B01111101, // 6
+    B00000111, // 7
+    B01111111, // 8
+    B01101111, // 9
+    B00000000, // BLANK
+    B01000000, // DASH
+    B10000000  }; //dot
+    
+int latchPin = 3;  //Pin connected to ST_CP(pin 12) of 74HC595
+int clockPin = 4; //Pin connected to SH_CP(pin 11) of 74HC595
+int dataPin = 5; //Pin connected to date(pin 14) of 74HC595
+
+int counter=1; // counter for multiplexing switch
+int sec=0;
+int minn=0;
+
+unsigned long t1=0; // timer for multiplexing switch
+unsigned long t2=0;
+
+unsigned long c1=0; // timer for clock
+unsigned long c2=0;
+
+byte d1=0; // bytes for multiplexing or switching 4 digit LED display
+byte d2=0;
+byte d3=0;
+byte d4=0;
+
+byte dot= B10000000; //dot;  use ( |dot ) to add a dot to any 4 digit.
+
+void setup() {    
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  
+   pinMode(A1, OUTPUT); 
+   pinMode(A2, OUTPUT);
+   pinMode(A3, OUTPUT);
+   pinMode(A4, OUTPUT);   
+}
+void loop() 
+{ 
+  
+  int buffer=(minn*100)+sec;  // turns minute and sec into 4 digit number
+  
+  
+ d1=dg[buffer/1000];          // split 4 digit number to 4 one digit number
+ d2=dg[(buffer/100)%10]| dot;
+ d3=dg[(buffer/10)%10];
+ d4=dg[(buffer%10)];
+
+if(sec%2==1)dot=B10000000; else dot=B00000000;  // flash a dot for every 2 second
+
+  if(sec==60){sec=0; minn++;}    
+  if(minn==60){minn=0;}  
+  
+  c1=millis(); // second counter
+  if (c1-c2>=1000){  
+  sec++; 
+  c2=c1;
+  }
+  
+  t1=millis(); // multiplexed throught A1-A4 pins
+  if (t1-t2>=5){
+   
+    counter++;
+    if(counter==5) counter=1;
+     
+    if (counter==1){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST, d1);      
+    digitalWrite(A1, LOW);    
+    digitalWrite(A2, HIGH); 
+    digitalWrite(A3, HIGH); 
+    digitalWrite(A4, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }
+    
+    if (counter==2){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST, d2);      
+    digitalWrite(A2, LOW);  
+    digitalWrite(A1, HIGH); 
+    digitalWrite(A3, HIGH); 
+    digitalWrite(A4, HIGH);    
+    digitalWrite(latchPin, HIGH);     
+    }    
+    
+    if (counter==3){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST, d3);      
+    digitalWrite(A3, LOW); 
+    digitalWrite(A2, HIGH); 
+    digitalWrite(A1, HIGH); 
+    digitalWrite(A4, HIGH);      
+    digitalWrite(latchPin, HIGH);     
+    }        
+
+    if (counter==4){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST, d4);      
+    digitalWrite(A4, LOW);
+    digitalWrite(A2, HIGH); 
+    digitalWrite(A3, HIGH); 
+    digitalWrite(A1, HIGH);      
+    digitalWrite(latchPin, HIGH);     
+    }        
+        
+  t2=t1;
+  }
+    
+
+}
