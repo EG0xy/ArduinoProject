@@ -1,0 +1,367 @@
+//Clock code for Arjinno V1 
+// LED 13, 12, 11, 10, 9, 8
+#include <Wire.h>
+#include <LiquidCrystal.h> // 16x02 LCD library
+#include "ClickButton.h"  // button library
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+ClickButton ba(A0, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A1, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A2, LOW, CLICKBTN_PULLUP);
+
+int lcdlight = 0; // LCD backlight
+int beeper = 1;   // beeper pin
+int relay = 8;    // relay pin
+int potL = A7;    // left potentiometer (can be use as an input and calibration)
+int potR = A6;    // Right potentiometer bigger one, mainly use as an input device
+
+byte clock[8] = {
+  0b00000,
+  0b01110,
+  0b10101,
+  0b10101,
+  0b10111,
+  0b10001,
+  0b01110,
+  0b00000
+};  
+
+byte arrowup[8] = {
+  0b00100,
+  0b00100,
+  0b01110,
+  0b11111,
+  0b00100,
+  0b01110,
+  0b01110,
+  0b01010};
+  
+byte arrowright[8] = {
+  0b01000,
+  0b00100,
+  0b00110,
+  0b11111,
+  0b11111,
+  0b00110,
+  0b00100,
+  0b01000};  
+  
+byte alarm[8] = {
+  0b00000,
+  0b00100,
+  0b01110,
+  0b01110,
+  0b01110,
+  0b11111,
+  0b00100,
+  0b00000
+};    
+
+byte countdown[8] = {
+  	0b00000,
+  	0b11111,
+  	0b10001,
+  	0b01010,
+  	0b00100,
+  	0b01010,
+  	0b10001,
+  	0b11111
+};
+
+#define ck 0x01
+#define au 0x02
+#define ar 0x03
+#define al 0x04
+#define cd 0x05
+
+unsigned long t1 = 0;
+unsigned long t2 = 0;
+unsigned long t3 = 0;
+unsigned long t4 = 0;
+
+int timer=1000; 
+int tsec = 0;
+int tmin = 0;
+int thr = 0;
+int thalfday=0;
+int tday=1;
+int tweekday=1;
+
+int ahr=12;
+int amin=0;
+int ahalfday=1;
+int alarmsw=0;
+int toggle=0;
+
+char* chalfday="  ";
+char* cahalfday="  ";
+char* cweekday="   ";
+char* alsw="   ";
+char lineA[17];
+char lineB[17];
+
+int test=5;  
+  
+int mode=0;
+int modex=0;
+
+int wheel=0;
+int wheelx=0;
+
+int pos=1;
+int posx=1;
+
+int cursor=0;
+int cursorx=0;
+
+void setup() {
+  lcd.begin(16, 2);
+  digitalWrite (lcdlight, HIGH);
+  lcd.createChar(1, clock);
+  lcd.createChar(2, arrowup);
+  lcd.createChar(3, arrowright);
+  lcd.createChar(4, alarm);
+  lcd.createChar(5, countdown);  
+  
+  for(int x=9; x<13; x++){
+  pinMode(x, OUTPUT);}  
+  
+  pinMode (lcdlight, OUTPUT);
+  pinMode (beeper, OUTPUT);
+  pinMode (relay, OUTPUT);
+  pinMode (potL, INPUT);
+  pinMode (potR, INPUT);  
+  
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50;
+  bc.multiclickTime = 50;  
+}
+
+void loop() {
+  ba.Update();
+  bb.Update();
+  bc.Update();
+
+  //--------------------------------------------  
+  //clock code and LCD line A print out
+  t1 = millis();
+  if (t1 - t2 >= timer) {
+    tsec++;
+    cursor++;
+    toggle=!toggle;
+    t2 = t1;
+  }  
+ 
+  
+  if(tsec==61){tsec=0; tmin++;}
+  if(tmin==61){tmin=0; thr++;}
+  if(thr==13){thr=0;thalfday++;}
+  if(thalfday==2){tday++; thalfday=0;}
+  if(tday==8){tday=1;}
+  
+  if(thalfday==0)chalfday="AM";
+  else chalfday="PM";
+  
+  if(ahalfday==2){ahalfday=0;}
+  if(ahalfday==-1){ahalfday=1;}
+  if(ahalfday==0)cahalfday="AM";
+  else cahalfday="PM";
+  
+  if(tday==1)cweekday="MON";
+  if(tday==2)cweekday="TUE";  
+  if(tday==3)cweekday="WED";
+  if(tday==4)cweekday="THU";
+  if(tday==5)cweekday="FRI";
+  if(tday==6)cweekday="SAT";
+  if(tday==7)cweekday="SUN";
+  
+  //--------------------------------------------    
+ 
+  if(pos!=posx){
+     lcd.clear();
+     posx=pos; 
+  }  
+  
+  if(cursor!=cursorx){
+     lcd.clear();
+     cursorx=cursor; 
+  }  
+  if(cursor==16){cursor=0;}    
+
+
+  
+  //--------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- 
+  
+  if(mode==0){
+  
+  sprintf(lineA, "%c%s %02d:%02d:%02d %s", ck, cweekday, thr, tmin, tsec, chalfday );
+  lcd.setCursor (0,0); 
+  lcd.print (lineA);  
+
+  sprintf(lineB, "%c", ar );
+  lcd.setCursor (cursor,1); 
+  lcd.print (lineB); 
+  
+  }
+  
+  //---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---
+  
+  if(mode==1){
+
+  sprintf(lineA, "%c%s %02d:%02d:%02d %s", ck, cweekday, thr, tmin, tsec, chalfday );
+  lcd.setCursor (0,0); 
+  lcd.print (lineA);     
+  
+  switch (pos){
+  case 1:  
+  sprintf(lineB, "%cSet time: %04d", ar, timer);
+  lcd.setCursor (0,1); 
+  lcd.print (lineB);  
+  timer=swheel(timer, 950, 1050);  
+  if(timer==1051) timer=950;
+  if(timer==949) timer=1050;  
+  break;  
+  
+  case 2:    
+  sprintf(lineB, "%c Day",au );
+  lcd.setCursor (3,1); 
+  lcd.print (lineB);  
+  tday=swheel(tday,1,7);
+  break;    
+  
+  case 3:   
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (6,1); 
+  lcd.print (lineB); 
+  thr=swheel(thr,0, 12);  
+  break;  
+  
+  case 4: 
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (9,1); 
+  lcd.print (lineB); 
+  tmin=swheel(tmin, 0, 60);  
+  break;    
+  
+  case 5:  
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (12,1); 
+  lcd.print (lineB); 
+  tsec=swheel(tsec,0, 60);  
+  break; 
+
+  case 6:    
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (15,1); 
+  lcd.print (lineB);  
+  thalfday=swheel(thalfday,0, 4);  
+  break;       
+  }
+  
+  if(pos==7)pos=1;
+  if(pos==0)pos=6;  
+  if(ba.clicks==1)  pos--; 
+  if(bb.clicks==1)  pos++; 
+  }  
+  //---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---    
+  
+  if(mode==2){
+    
+  sprintf(lineA, "%cAlarm  %02d:%02d %s", al, ahr, amin, cahalfday );
+  lcd.setCursor (0,0); 
+  lcd.print (lineA); 
+
+
+  switch (pos){
+  case 1:  
+  sprintf(lineB, "%cSet Alarm: %s", ar,alsw );
+  lcd.setCursor (0,1); 
+  lcd.print (lineB); 
+  alarmsw=swheel (alarmsw, 0, 5);  
+  break;  
+  
+  case 2:    
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (9,1); 
+  lcd.print (lineB);  
+  ahr=swheel(ahr,0,12);
+  break;    
+  
+  case 3:   
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (12,1); 
+  lcd.print (lineB); 
+  amin=swheel(amin,0, 60);  
+  break;  
+  
+  case 4: 
+  sprintf(lineB, "%c",au );
+  lcd.setCursor (15,1); 
+  lcd.print (lineB); 
+  ahalfday=swheel(ahalfday, 0, 4);  
+  break;  
+  }
+
+  if(pos==5)pos=1;
+  if(pos==0)pos=4; 
+  if(ba.clicks==1)  pos--; 
+  if(bb.clicks==1)  pos++;   
+  }    
+  
+  if(alarmsw%2==0)alarmsw=0;
+  else alarmsw=1;
+  
+  if(alarmsw==1){
+  alsw="ON ";  
+  digitalWrite (13, HIGH);  
+  if(ahr==thr && amin==tmin && ahalfday==thalfday){
+  digitalWrite (beeper, toggle);
+  }
+  }
+  else{
+  alsw="OFF";
+    digitalWrite (beeper, LOW);
+    digitalWrite (13, LOW);     
+  }
+
+  //---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---
+  
+  if(mode!=modex){
+     lcd.clear();
+     pos=1;
+     modex=mode; 
+  }  
+  if(mode==3){mode=0;}   
+  
+  
+  // buttons codes
+  
+  if(ba.clicks==1)  ; 
+  if(ba.clicks==-1) ;  
+  
+  if(bb.clicks==1)  ; 
+  if(bb.clicks==-1) ;  
+  
+  if(bc.clicks==1 )  mode++;   
+  if(bc.clicks==-1) {mode=0; alarmsw=0;}  
+  
+}
+
+
+int swheel(int x, int a, int b){
+  int bufferR = analogRead (potR);
+  wheel = map(bufferR, 0, 1023, a, b);   
+  if(wheel!=wheelx){
+     if(wheel-wheelx==1){
+     x--;  
+     if(x==a-1) x=b;
+     }    
+     if(wheel-wheelx==-1){
+     x++;  
+     if(x==b+1) x=a; 
+     }
+
+     wheelx=wheel; 
+  }
+  return x;
+}  
