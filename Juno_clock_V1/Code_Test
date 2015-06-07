@@ -1,0 +1,182 @@
+/*
+Introduction:
+========================================================================
+
+First set the fuse of the CPU
+Fuse for atmega8 (-U lfuse:w:0xe4:m -U hfuse:w:0xd9:m) (LOW:E4  HIGH:D9)
+(Check board file for IDE 1.6.3; You may need set your own board file if you are using other version)
+
+Connections:
+------------------------------------------------------------------------
+DS1302: 
+rst - DP1
+I/0 - DP2
+SCLK- DP3
+
+74HC595- (Controls 1-8 LED; 7-seg(A-G,dot))
+latchPin - DP8
+clockPin - DP9
+dataPin - DP10
+
+7-Seg digits (Active LOW)
+Digit 1 - DP4
+Digit 2 - DP5
+Digit 3 - DP6
+Digit 4 - DP7
+
+3 Buttons: (Active LOW)
+A-A1
+B-A2
+C-A3
+------------------------------------------------------------------------
+
+Codes for numbers: (Inverted)
+    const byte digit[] =
+    {
+  //DGFEDCBA
+  //00111000   
+    
+    B00111111, // 0
+    B00110000, // 1
+    B01011011, // 2
+    B01111001, // 3
+    B01110100, // 4
+    B01101101, // 5
+    B01101111, // 6
+    B00111000, // 7
+    B01111111, // 8
+    B01111101, // 9
+    B00000000, // BLANK
+    B01000000, // DASH
+    B10000000  }; //dot
+    }
+------------------------------------------------------------------------
+
+*/
+
+
+#include <DS1302.h>
+DS1302 rtc(1, 2, 3);
+Time t;
+
+int latchPin = 8; 
+int clockPin = 9; 
+int dataPin = 10; 
+
+//------------- Gobal Values ----------------------------------
+
+int counter=1; // counter for multiplexing switch
+int millsec=0;
+int secx=0;
+int minx=12;
+int hrx=12;
+int fourDig=1234;
+int toggle=0;
+
+unsigned long t1=0; // timer for multiplexing switch
+unsigned long t2=0;
+
+byte d1=0; // bytes for multiplexing or switching 4 digit LED display ComC
+byte d2=0;
+byte d3=0;
+byte d4=0;
+
+byte leds =B00000000; // one byte for controlling 8 LEDS
+
+   const byte digit[] =
+    {
+    B00111111, // 0
+    B00110000, // 1
+    B01011011, // 2
+    B01111001, // 3
+    B01110100, // 4
+    B01101101, // 5
+    B01101111, // 6
+    B00111000, // 7
+    B01111111, // 8
+    B01111101, // 9
+    B00000000, // BLANK
+    B01000000, // DASH
+    B10000000  }; //dot
+
+//---------------------------------------------------------------
+void setup() {   
+ 
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  
+   pinMode(4, OUTPUT);//first digit - Active LOW
+   pinMode(5, OUTPUT);//sec digit - Active LOW
+   pinMode(6, OUTPUT);//Third digit - Active LOW
+   pinMode(7, OUTPUT);//Fourth digit - Active LOW   
+
+  
+}
+void loop() 
+{ 
+
+ t = rtc.getTime();
+  
+ fourDig=(t.min)*100 + t.sec;
+
+ d1=digit[fourDig/1000];          // split One digit number to 4 one digit number
+ d2=digit[(fourDig/100)%10];
+ d3=digit[(fourDig/10)%10];
+ d4=digit[(fourDig%10)];  
+   
+ if(t.sec%2==0) leds=B00000000;
+ else leds=B11111111;
+ 
+ 
+ t1=millis(); // multiplexed throught A1-A4 pins
+  if (t1-t2>=1){
+   
+    counter++;
+    if(counter==5) counter=1;
+     
+    if (counter==1){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,leds); //(1-8 red LEDs)
+    shiftOut(dataPin, clockPin, MSBFIRST ,d4); //(A-G, Dot, 7-seg LED)   
+    digitalWrite(latchPin, HIGH);      
+    digitalWrite(4, LOW);    
+    digitalWrite(7, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }
+    
+    if (counter==2){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,leds); //(1-8 red LEDs)
+    shiftOut(dataPin, clockPin, MSBFIRST ,d3); //(A-G, Dot, 7-seg LED)   
+    digitalWrite(latchPin, HIGH);   
+    digitalWrite(5, LOW);  
+    digitalWrite(4, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }    
+    
+    if (counter==3){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,leds); //(1-8 red LEDs)
+    shiftOut(dataPin, clockPin, MSBFIRST ,d2); //(A-G, Dot, 7-seg LED)   
+    digitalWrite(latchPin, HIGH);     
+    digitalWrite(6, LOW); 
+    digitalWrite(5, HIGH); 
+    digitalWrite(latchPin, HIGH);     
+    }        
+
+    if (counter==4){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,leds); //(1-8 red LEDs)
+    shiftOut(dataPin, clockPin, MSBFIRST ,d1); //(A-G, Dot, 7-seg LED)   
+    digitalWrite(latchPin, HIGH);      
+    digitalWrite(7, LOW);  
+    digitalWrite(6, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }        
+        
+  t2=t1;
+  }
+    
+       
+}
