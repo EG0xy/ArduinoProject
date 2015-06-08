@@ -1,0 +1,44 @@
+//Clock code for Arjinno V2
+// LED 13, 12, 11, 10, 9, 8
+#include <Wire.h>
+#include <LiquidCrystal.h> // 16x02 LCD library
+#include "ClickButton.h"  // button library
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+ClickButton ba(A1, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A2, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A0, LOW, CLICKBTN_PULLUP);
+
+int lcdlight = 0; // LCD backlight
+int beeper = 1;   // beeper pin
+int potL = A7;    // left potentiometer (can be use as an input and calibration)
+int potR = A6;    // Right potentiometer bigger one, mainly use as an input device/
+int relay = A3;    // relay pin
+
+void setup() {
+  lcd.begin(16, 2);
+  digitalWrite (lcdlight, HIGH);
+  
+  pinMode (lcdlight, OUTPUT);
+  pinMode (beeper, OUTPUT);
+  pinMode (relay, OUTPUT);
+  pinMode (potL, INPUT);
+  pinMode (potR, INPUT);  
+  
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50;
+  bc.multiclickTime = 50;  
+}
+
+void loop() {
+  ba.Update();
+  bb.Update();
+  bc.Update();
+
+  lcd.setCursor (0,0); 
+  lcd.print ("Hello World :)");  
+
+  lcd.setCursor (0,1); 
+  lcd.print ("Juno Micro-pc");    
+  
+}
