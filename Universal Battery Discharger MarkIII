@@ -1,0 +1,162 @@
+/*
+
+atmega8 juno mode
+
+A5= shunt reading
+A4= Battery reading
+9= Power trans switch
+
+cut out voltage
+ if(voltage<2.7) 
+ if(voltage<0.9) 
+
+*/
+
+
+#include <Wire.h>
+#include <LiquidCrystal.h>
+#include "ClickButton.h"
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+ClickButton ba(A0, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A1, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A2, LOW, CLICKBTN_PULLUP);
+
+boolean sw=1;
+boolean sm=0;   //sec/min time display
+boolean mode = 0;
+boolean menu = 0;
+
+
+unsigned long secc=0;
+
+
+unsigned long t1=0;
+unsigned long t2=0;
+
+int readma=0;
+int readv=0;
+
+int current; 
+float voltage;
+
+int mah;
+float nVolt;
+unsigned long totalW;
+//==================================================
+
+void setup() {
+  lcd.begin(16,2);
+  analogReference (INTERNAL);  
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50; 
+  bc.multiclickTime = 50; 
+
+  pinMode (11, OUTPUT); //mode 
+  pinMode (9, OUTPUT); //trans 
+  pinMode (0, OUTPUT); //led blacklit  
+  digitalWrite (0, 1);    
+}
+
+void loop() {
+  ba.Update();
+  bb.Update(); 
+  bc.Update();
+  
+  digitalWrite (9, sw); // discharge transistor
+
+  digitalWrite (11, mode); // mode indicator
+//======================================
+
+ if(mode==0){
+    nVolt=3.7; 
+  if(voltage<2.7) {sw=0;}
+
+ }
+
+  
+ if(mode==1){
+   nVolt=1.2;
+  if(voltage<0.9) {sw=0;} 
+
+ }
+ 
+//======================================
+  
+
+
+  
+  t1= millis();
+  if(t1-t2 >= 1000){
+      readma=analogRead (A5);
+      readv=analogRead (A4);
+      current= (readma/1024.0)*2.56*1000.0; 
+      voltage= (readv/1024.0)*12.041;      
+      totalW=totalW+(current*voltage);
+      mah=totalW/nVolt/3600;  
+      
+      lcd.clear();   
+      
+      if(sw==1){secc++; }  
+           
+      t2=t1;
+      
+    } 
+    
+ //========================================= 
+
+if(menu==0){
+
+    lcd.setCursor (0,0); 
+    lcd.print ("Ma:"); 
+    lcd.setCursor (3,0); 
+    lcd.print (current);  
+
+
+    if (secc<7200){
+    lcd.setCursor (8,0); 
+    lcd.print ("Sec:");   
+    
+    lcd.setCursor (12,0); 
+    lcd.print (secc); }
+    
+    else {
+    lcd.setCursor (8,0); 
+    lcd.print ("Min:");   
+    
+    lcd.setCursor (12,0); 
+    lcd.print (secc/60);    
+    
+    }
+ 
+ 
+    lcd.setCursor (0,1); 
+    lcd.print ("Vi:"); 
+    
+    lcd.setCursor (3,1); 
+    lcd.print (voltage);  
+    
+    lcd.setCursor (8,1); 
+    lcd.print ("mah:"); 
+
+    lcd.setCursor (12,1); 
+    lcd.print (mah); 
+}
+
+else{
+    lcd.setCursor (0,0); 
+    lcd.print ("Battery Discharg"); 
+
+    lcd.setCursor (0,1); 
+    lcd.print ("Nominal Volt:"); 
+
+    lcd.setCursor (13,1); 
+    lcd.print (nVolt);     
+}
+
+
+    
+  if(ba.clicks==1) mode=!mode; 
+  if(bb.clicks==1) menu=!menu;  
+  if(bc.clicks==1) sw=!sw;    
+}
