@@ -1,0 +1,303 @@
+#include "ClickButton.h"
+#include <DS1302.h>
+DS1302 rtc(1, 2, 3);
+Time t;
+
+int latchPin = 8; 
+int clockPin = 9; 
+int dataPin = 10; 
+
+ClickButton ba(A1, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A2, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A3, LOW, CLICKBTN_PULLUP);
+
+int mode=0;
+int psmode=0;
+int pos=0;
+boolean blinkT=0;
+
+int secX=0;
+int minX=12;
+int hrX=12; 
+
+int counter=1; // counter for multiplexing switch
+
+unsigned long t1=0; // timer for multiplexing switch
+unsigned long t2=0;
+
+unsigned long t3=0; // internal timing
+unsigned long t4=0;
+
+unsigned long t5=0; // blinking timing
+unsigned long t6=0;
+
+byte LED =0;
+byte d1=0; // bytes for multiplexing or switching 4 digits LED display
+byte d2=0;
+byte d3=0;
+byte d4=0;
+
+byte dx1=0;
+byte dx2=0;
+byte dx3=0;
+byte dx4=0;
+
+int left=12;
+int right=34;
+
+
+int ledCount=0;
+   const byte led[] =
+    {
+    B00000000,      
+    B00000001, // 1
+    B00000011, // 2
+    B00000111, // 3
+    B00001111, // 4
+    B00011111, // 5
+    B00111111, // 6
+    B01111111,
+    B11111111  }; // 7 
+    
+    
+   const byte digit[] =
+    {
+    B00111111, // 0
+    B00110000, // 1
+    B01011011, // 2
+    B01111001, // 3
+    B01110100, // 4
+    B01101101, // 5
+    B01101111, // 6
+    B00111000, // 7
+    B01111111, // 8
+    B01111101, // 9
+    B00000000, // BLANK
+    B10000000  }; //dot
+//==================================================================================
+
+void setup() {
+ 
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  
+   pinMode(4, OUTPUT);//first digit - Active LOW
+   pinMode(5, OUTPUT);//sec digit - Active LOW
+   pinMode(6, OUTPUT);//Third digit - Active LOW
+   pinMode(7, OUTPUT);//Fourth digit - Active LOW   
+   
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50; 
+  bc.multiclickTime = 50;   
+  
+t = rtc.getTime();    
+ hrX=t.hour;
+ minX=t.min;
+ secX=t.sec;
+ 
+}
+
+void loop() {
+  
+t = rtc.getTime();  
+ba.Update();
+bb.Update(); 
+bc.Update();  
+
+//=======================================================
+LED=led[ledCount];
+
+d1=digit[left/10];
+d2=digit[left%10];
+d3=digit[right/10];
+d4=digit[right%10];
+
+
+
+//====modes===============================================
+
+if(mode==0){
+  dx1=d1;
+  dx2=d2;
+  dx3=d3;
+  dx4=d4;  
+  
+  if(pos==0){
+  left=hrX;
+  right=minX;
+  }
+  
+  if(pos==1){
+  left=minX;
+  right=secX;  
+  }
+  
+    if(bb.clicks==1) pos--; 
+    if(bc.clicks==1) pos++;  
+    if(pos==2) pos=0;
+    if(pos==-1) pos=1;   
+}
+
+if(mode==1){
+  if(pos==0){
+  left=hrX;
+  right=minX;
+  
+  dx1=B00000000;
+  dx2=B00000000;
+  dx3=d3;
+  dx4=d4;    
+  
+    if(bb.clicks==1) {
+    hrX--;
+    rtc.halt(false);
+    rtc.writeProtect(false);
+    rtc.setTime(hrX, minX, 0);  
+         } 
+
+    if(bc.clicks==1) {
+      hrX++;   
+    rtc.halt(false);
+    rtc.writeProtect(false);
+    rtc.setTime(hrX, minX, 0);        
+  }
+  }
+  
+  if(pos==1){
+  left=hrX;
+  right=minX;
+ 
+  dx1=d1;
+  dx2=d2;
+  dx3=B00000000;
+  dx4=B00000000;    
+  
+    if(bb.clicks==1) {
+      minX--; 
+          rtc.halt(false);
+    rtc.writeProtect(false);
+    rtc.setTime(hrX, minX, 0);  }
+    
+    if(bc.clicks==1) {
+      minX++;
+       rtc.halt(false);
+    rtc.writeProtect(false);
+    rtc.setTime(hrX, minX, 0);  }
+    
+  }
+  
+    if(bb.clicks==-1) pos--; 
+    if(bc.clicks==-1) pos++;  
+    if(pos==2) pos=0;
+    if(pos==-1) pos=1;    
+  
+}
+
+
+ if(mode==2)mode=0;
+ 
+ if(mode!=psmode){
+   pos=0;
+   psmode=mode;
+ }
+  
+ //=======================================================
+ t1=millis(); // multiplexed throught A1-A4 pins
+  if (t1-t2>=1){
+   
+    counter++;
+    if(counter==5) counter=1;
+     
+    if (counter==1){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,LED); //(1-8 red LED
+    
+    if(blinkT==0){
+    shiftOut(dataPin, clockPin, MSBFIRST ,d4);} //(A-G, Dot, 7-seg LED)   
+    if(blinkT==1){
+    shiftOut(dataPin, clockPin, MSBFIRST ,dx4);} //(A-G, Dot, 7-seg LED)
+    
+    digitalWrite(latchPin, HIGH);      
+    digitalWrite(4, LOW);    
+    digitalWrite(7, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }
+    
+    if (counter==2){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,LED); //(1-8 red LEDs)
+    if(blinkT==0){
+    shiftOut(dataPin, clockPin, MSBFIRST ,d3);} //(A-G, Dot, 7-seg LED)   
+    if(blinkT==1){
+    shiftOut(dataPin, clockPin, MSBFIRST ,dx3);} //(A-G, Dot, 7-seg LED) 
+    digitalWrite(latchPin, HIGH);   
+    digitalWrite(5, LOW);  
+    digitalWrite(4, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }    
+    
+    if (counter==3){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,LED); //(1-8 red LEDs)
+    if(blinkT==0){
+    shiftOut(dataPin, clockPin, MSBFIRST ,d2);} //(A-G, Dot, 7-seg LED)   
+    if(blinkT==1){
+    shiftOut(dataPin, clockPin, MSBFIRST ,dx2);} //(A-G, Dot, 7-seg LED) 
+    digitalWrite(latchPin, HIGH);     
+    digitalWrite(6, LOW); 
+    digitalWrite(5, HIGH); 
+    digitalWrite(latchPin, HIGH);     
+    }        
+
+    if (counter==4){
+    digitalWrite(latchPin, LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,LED); //(1-8 red LEDs)
+    if(blinkT==0){
+    shiftOut(dataPin, clockPin, MSBFIRST ,d1);} //(A-G, Dot, 7-seg LED)   
+    if(blinkT==1){
+    shiftOut(dataPin, clockPin, MSBFIRST ,dx1);} //(A-G, Dot, 7-seg LED) 
+    digitalWrite(latchPin, HIGH);      
+    digitalWrite(7, LOW);  
+    digitalWrite(6, HIGH);     
+    digitalWrite(latchPin, HIGH);     
+    }        
+        
+  t2=t1;
+  }
+  
+ //=======================================================   
+ t3=millis(); // second timer
+  if (t3-t4>=1000){
+    secX++;
+    ledCount++;
+    
+  t4=t3;  
+  }
+  
+  if(secX==60){minX++; secX=0;}
+  if(minX==60){hrX++; minX=0;}
+  if(minX==-1){minX=59;}  
+  
+  if(hrX==0){hrX=12;}  
+  if(hrX==13){hrX=1;}
+  if(hrX>13){hrX=hrX-12;} 
+  
+  if(ledCount==9) ledCount=0;
+  
+ //=======================================================   
+ t5=millis(); // blinker timer
+  if (t5-t6>=100){
+    blinkT=!blinkT;
+    
+  t6=t5;  
+  }    
+  
+ //=======================================================  
+ 
+
+    
+  if(ba.clicks==1) mode++; 
+  
+
+}
