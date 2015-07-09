@@ -17,25 +17,16 @@ int counter=1; // counter for multiplexing switch
 unsigned long t1=0; // timer for multiplexing switch
 unsigned long t2=0;
 
-boolean leda[]={1,1,1,1,1,1,1,1}; //(1,11,21,31,41,51,61,71)
-boolean ledb[]={1,1,1,1,1,1,1,1}; //(2,12,22,32,42,52,62,72)
-boolean ledc[]={1,1,1,1,1,1,1,1}; //(3,13,23,33,43,53,63,73)
-boolean ledd[]={1,1,1,1,1,1,1,1}; //(4,14,24,34,44,54,64,74)
-boolean lede[]={1,1,1,1,1,1,1,1}; //(5,15,25,35,45,55,65,75)
-boolean ledf[]={1,1,1,1,1,1,1,1}; //(6,16,26,36,46,56,66,76)
-boolean ledg[]={1,1,1,1,1,1,1,1}; //(7,17,27,37,47,57,67,77)
-boolean ledh[]={1,1,1,1,1,1,1,1}; //(10,20,30,40,50,60,70,80)
-
-byte  led1=B11111111;
-byte  led2=B11111111;
-byte  led3=B11111111;
-byte  led4=B11111111;
-byte  led5=B11111111;
-byte  led6=B11111111;
-byte  led7=B11111111;
-byte  led8=B11111111;
-byte  led9=B11111111;
-byte led10=B11111111;
+byte  led1=B11111111;  //(1,11,21,31,41,51,61,71)  //switch for turning on 80 LEDS//active LOW
+byte  led2=B11111111;  //(2,12,22,32,42,52,62,72)
+byte  led3=B11111111;  //(3,13,23,33,43,53,63,73)
+byte  led4=B11111111;  //(4,14,24,34,44,54,64,74)
+byte  led5=B11111111;  //(5,15,25,35,45,55,65,75)
+byte  led6=B11111111;  //(6,16,26,36,46,56,66,76)
+byte  led7=B11111111;  //(7,17,27,37,47,57,67,77)
+byte  led8=B11111111;  //(8,18,28,38,48,58,68,78)
+byte  led9=B11111111;  //(9,19,29,39,49,59,69,79)
+byte led10=B11111111; //(10,20,30,40,50,60,70,80)
 //==================================================================================
 
 void setup() {
@@ -55,16 +46,16 @@ void setup() {
  pinMode(9, OUTPUT);
  pinMode(10, OUTPUT);
    
-    digitalWrite(1,HIGH);      
-    digitalWrite(2,HIGH);   
-    digitalWrite(3,HIGH);      
-    digitalWrite(4,HIGH);   
-    digitalWrite(5,HIGH);      
-    digitalWrite(6,HIGH);      
-    digitalWrite(7,HIGH);      
-    digitalWrite(8,HIGH);   
-    digitalWrite(9,HIGH);      
-    digitalWrite(10,HIGH);      
+digitalWrite(1,HIGH);      
+digitalWrite(2,HIGH);   
+digitalWrite(3,HIGH);      
+digitalWrite(4,HIGH);   
+digitalWrite(5,HIGH);      
+digitalWrite(6,HIGH);      
+digitalWrite(7,HIGH);      
+digitalWrite(8,HIGH);   
+digitalWrite(9,HIGH);      
+digitalWrite(10,HIGH);      
     
   ba.multiclickTime = 50;
   bb.multiclickTime = 50; 
@@ -80,13 +71,19 @@ ba.Update();
 bb.Update(); 
 bc.Update();  
 
-  
+  //  B11111111
+  //  B00000000
 
-  led1=B01010101;
-  
-   
-  
-  
+  led1=B00000000;
+  led2=B00000000; 
+  led3=B00000000;
+  led4=B00000000;
+  led5=B00000000;
+  led6=B00000000;
+  led7=B00000000;  
+  led8=B00000000;     
+  led9=B00000000;      
+ led10=B00000000;     
  
 
 ;   
@@ -104,6 +101,15 @@ bc.Update();
     shiftOut(dataPin, clockPin, MSBFIRST ,B00000001); 
     digitalWrite(latchPin, HIGH); 
     digitalWrite(1, bitRead(led1, 7));
+    digitalWrite(2, bitRead(led2, 7));   
+    digitalWrite(3, bitRead(led3, 7));
+    digitalWrite(4, bitRead(led4, 7));
+    digitalWrite(5, bitRead(led5, 7));
+    digitalWrite(6, bitRead(led6, 7));
+    digitalWrite(7, bitRead(led7, 7));
+    digitalWrite(8, bitRead(led8, 7));
+    digitalWrite(9, bitRead(led9, 7));    
+   digitalWrite(10, bitRead(led10, 7));    
   }   
   
   if (counter==2){
@@ -111,7 +117,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B00000010); 
     digitalWrite(latchPin, HIGH);  
-   digitalWrite(1, bitRead(led1, 6));           
+    digitalWrite(1, bitRead(led1, 6));
+    digitalWrite(2, bitRead(led2, 6));   
+    digitalWrite(3, bitRead(led3, 6));
+    digitalWrite(4, bitRead(led4, 6));
+    digitalWrite(5, bitRead(led5, 6));
+    digitalWrite(6, bitRead(led6, 6));
+    digitalWrite(7, bitRead(led7, 6));
+    digitalWrite(8, bitRead(led8, 6));
+    digitalWrite(9, bitRead(led9, 6));    
+   digitalWrite(10, bitRead(led10, 6)); 
   }   
 
   if (counter==3){
@@ -119,7 +134,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B00000100); 
     digitalWrite(latchPin, HIGH); 
-    digitalWrite(1, bitRead(led1, 5));      
+    digitalWrite(1, bitRead(led1, 5));
+    digitalWrite(2, bitRead(led2, 5));   
+    digitalWrite(3, bitRead(led3, 5));
+    digitalWrite(4, bitRead(led4, 5));
+    digitalWrite(5, bitRead(led5, 5));
+    digitalWrite(6, bitRead(led6, 5));
+    digitalWrite(7, bitRead(led7, 5));
+    digitalWrite(8, bitRead(led8, 5));
+    digitalWrite(9, bitRead(led9, 5));    
+   digitalWrite(10, bitRead(led10, 5));      
   }   
 
   if (counter==4){
@@ -127,7 +151,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B00001000); 
     digitalWrite(latchPin, HIGH); 
-    digitalWrite(1, bitRead(led1, 4));     
+    digitalWrite(1, bitRead(led1, 4));
+    digitalWrite(2, bitRead(led2, 4));   
+    digitalWrite(3, bitRead(led3, 4));
+    digitalWrite(4, bitRead(led4, 4));
+    digitalWrite(5, bitRead(led5, 4));
+    digitalWrite(6, bitRead(led6, 4));
+    digitalWrite(7, bitRead(led7, 4));
+    digitalWrite(8, bitRead(led8, 4));
+    digitalWrite(9, bitRead(led9, 4));    
+   digitalWrite(10, bitRead(led10, 4));    
   }   
 
   if (counter==5){
@@ -135,7 +168,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B00010000); 
     digitalWrite(latchPin, HIGH);  
-    digitalWrite(1, bitRead(led1, 3));      
+    digitalWrite(1, bitRead(led1, 3));
+    digitalWrite(2, bitRead(led2, 3));   
+    digitalWrite(3, bitRead(led3, 3));
+    digitalWrite(4, bitRead(led4, 3));
+    digitalWrite(5, bitRead(led5, 3));
+    digitalWrite(6, bitRead(led6, 3));
+    digitalWrite(7, bitRead(led7, 3));
+    digitalWrite(8, bitRead(led8, 3));
+    digitalWrite(9, bitRead(led9, 3));    
+   digitalWrite(10, bitRead(led10, 3));  
   }   
 
   if (counter==6){
@@ -143,7 +185,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B00100000); 
     digitalWrite(latchPin, HIGH);   
-    digitalWrite(1, bitRead(led1, 2));      
+    digitalWrite(1, bitRead(led1, 2));
+    digitalWrite(2, bitRead(led2, 2));   
+    digitalWrite(3, bitRead(led3, 2));
+    digitalWrite(4, bitRead(led4, 2));
+    digitalWrite(5, bitRead(led5, 2));
+    digitalWrite(6, bitRead(led6, 2));
+    digitalWrite(7, bitRead(led7, 2));
+    digitalWrite(8, bitRead(led8, 2));
+    digitalWrite(9, bitRead(led9, 2));    
+   digitalWrite(10, bitRead(led10, 2));   
   }   
 
   if (counter==7){
@@ -151,7 +202,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B01000000); 
     digitalWrite(latchPin, HIGH);  
-    digitalWrite(1,bitRead(led1, 1));       
+    digitalWrite(1, bitRead(led1, 1));
+    digitalWrite(2, bitRead(led2, 1));   
+    digitalWrite(3, bitRead(led3, 1));
+    digitalWrite(4, bitRead(led4, 1));
+    digitalWrite(5, bitRead(led5, 1));
+    digitalWrite(6, bitRead(led6, 1));
+    digitalWrite(7, bitRead(led7, 1));
+    digitalWrite(8, bitRead(led8, 1));
+    digitalWrite(9, bitRead(led9, 1));    
+   digitalWrite(10, bitRead(led10, 1));      
   }   
 
   if (counter==8){
@@ -159,7 +219,16 @@ bc.Update();
     digitalWrite(latchPin,LOW); 
     shiftOut(dataPin, clockPin, MSBFIRST ,B10000000); 
     digitalWrite(latchPin, HIGH); 
-    digitalWrite(1,bitRead(led1, 0));        
+    digitalWrite(1, bitRead(led1, 0));
+    digitalWrite(2, bitRead(led2, 0));   
+    digitalWrite(3, bitRead(led3, 0));
+    digitalWrite(4, bitRead(led4, 0));
+    digitalWrite(5, bitRead(led5, 0));
+    digitalWrite(6, bitRead(led6, 0));
+    digitalWrite(7, bitRead(led7, 0));
+    digitalWrite(8, bitRead(led8, 0));
+    digitalWrite(9, bitRead(led9, 0));    
+   digitalWrite(10, bitRead(led10, 0));       
   }   
 
   t2=t1;
@@ -168,7 +237,6 @@ bc.Update();
  //=======================================================   
 
 
-    
-  
+   
 
 }
