@@ -1,0 +1,414 @@
+#include "ClickButton.h"
+#include <DS1302.h>
+DS1302 rtc(A3, A4, A5);
+Time t;
+
+int latchPin = 13; 
+int clockPin = 12; 
+int dataPin = 11; 
+
+ClickButton ba(A0, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A1, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A2, LOW, CLICKBTN_PULLUP);
+
+//===GOBALs Starts==================================================
+int counter=1; // counter for multiplexing switch
+
+unsigned long t1=0; // timer for multiplexing switch
+unsigned long t2=0;
+
+unsigned long t3=0;
+unsigned long t4=0;
+
+unsigned long t5=0;
+unsigned long t6=0;
+
+int setime=0;
+int secx=30;
+int minx=15;
+int hrx=10;
+int hry=0;
+int halfday=0;
+int dayx=4;
+
+int mode=0;
+
+byte LED[11]={255,255,255,255,255,255,255,255,255,255};
+byte shift=B11111111;
+
+/*
+byte  led1=B11111111;  //(1,11,21,31,41,51,61,71)  //switches for turning on 80 LEDS//active LOW
+byte  led2=B11111111;  //(2,12,22,32,42,52,62,72)
+byte  led3=B11111111;  //(3,13,23,33,43,53,63,73)
+byte  led4=B11111111;  //(4,14,24,34,44,54,64,74)
+byte  led5=B11111111;  //(5,15,25,35,45,55,65,75)
+byte  led6=B11111111;  //(6,16,26,36,46,56,66,76)
+byte  led7=B11111111;  //(7,17,27,37,47,57,67,77)
+byte  led8=B11111111;  //(8,18,28,38,48,58,68,78)
+byte  led9=B11111111;  //(9,19,29,39,49,59,69,79)
+byte led10=B11111111; //(10,20,30,40,50,60,70,80)
+*/
+//============================================GOBALs END================
+
+//===SETUPs Start==========================================================================
+
+void setup() {
+  
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  
+ for(int x=1; x<11; x++){
+ pinMode(x, OUTPUT); 
+ } 
+ 
+  for(int x=1; x<11; x++){  //p1-p10-active LOW
+digitalWrite(x,HIGH);
+ }     
+    
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50; 
+  bc.multiclickTime = 50; 
+
+  ba.debounceTime = 50;
+  bb.debounceTime = 50; 
+  bc.debounceTime = 50;  
+  
+ rtc.halt(false);
+t = rtc.getTime();
+ dayx=t.dow;
+ hry=t.hour;
+ minx=t.min;
+ secx=t.sec; 
+
+// ds1302 chip hr range: 0-23; min range:0-59; sec range 0-59;
+// convert 24 hr to 12 with am. pm.
+  if(hry<12 && hry>0){hrx=hry; halfday=0;}  
+  if(hry==0 ){hrx=12; halfday=0;} 
+  
+  if(hry>=13){hrx=hry-12; halfday=1;}   
+  if(hry==12){hrx=12; halfday=1;}   
+  
+  
+}  
+//==============================================================SETUPs ENDs====
+
+void loop() {
+  
+ba.Update();
+bb.Update(); 
+bc.Update();  
+
+//=======================buttons
+
+  if(ba.clicks==1) {mode++;}
+  if(ba.clicks==-1) {mode=0;}
+  
+  if(bb.clicks==-1){secx=0; setime=1;}
+  if(bc.clicks==-1)   
+  
+  
+ //================= update clock every 5 minutes
+  if(minx%5==0 && secx==10 && mode==0){
+    
+    rtc.halt(false);
+    t = rtc.getTime();
+     dayx=t.dow;
+     hry=t.hour;
+     minx=t.min;
+     secx=t.sec;
+     
+     
+    if(hry<12 && hry>0){hrx=hry; halfday=0;}  
+    if(hry==0 ){hrx=12; halfday=0;} 
+    
+    if(hry>=13){hrx=hry-12; halfday=1;}   
+    if(hry==12){hrx=12; halfday=1;}  
+}    
+
+//=======================clock display
+
+bitWrite(LED[((secx-1)%10)], 7-((secx-1)/10), 1); 
+if(secx==60){secx=0; minx++; }
+if(minx==60){minx=0; hrx++; }
+if(minx==-1){minx=59;}
+if(hrx==12){hrx=0;halfday++;}
+if(hrx==-1){hrx=11;}
+if(halfday==2){halfday=0;dayx++;}
+if(halfday==-1){halfday=1;}
+if(dayx==8){dayx=1;}
+if(dayx==0){dayx=7;}
+  
+if(mode==0){  
+bitWrite(LED[(secx%10)], 7-(secx/10), 0); 
+LED[minx%10]=LED[minx%10] & (bitWrite(shift, (7-(minx/10)), 0)); 
+bitWrite(shift, (7-(minx/10)), 1);
+LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (1-(hrx/10)), 0));
+bitWrite(shift, (1-(hrx/10)), 1);
+
+dayF();
+
+if(halfday==0){LED[9]=LED[9]&B11111110;}
+if(halfday==1){LED[9]=LED[9]|B00000001;}
+}
+
+//set min  ------------------------------------------------------
+if(mode==1){
+  if(bb.clicks==1) {minx--;}
+  if(bc.clicks==1) {minx++;} 
+  setime=1; 
+  
+LED[minx%10]=LED[minx%10] & (bitWrite(shift, (7-(minx/10)), 0)); 
+bitWrite(shift, (7-(minx/10)), 1);  
+}
+
+//set hr  ------------------------------------------------------
+if(mode==2){
+  if(bb.clicks==1) {hrx--;}
+  if(bc.clicks==1) {hrx++;}
+  setime=1; 
+
+LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (1-(hrx/10)), 0));
+bitWrite(shift, (1-(hrx/10)), 1); 
+
+}
+
+
+
+//set am/pm  ------------------------------------------------------
+if(mode==3){
+  if(bb.clicks==1) {halfday--;}
+  if(bc.clicks==1) {halfday++;}
+  setime=1; 
+  
+if(halfday==0){LED[9]=LED[9]&B11111110;}
+if(halfday==1){LED[9]=LED[9]|B00000001;}  
+}
+
+//set dow  ------------------------------------------------------
+if(mode==4){
+  if(bb.clicks==1) {dayx--;}
+  if(bc.clicks==1) {dayx++;}  
+  setime=1; 
+  
+dayF();
+
+}
+
+if(mode==5){mode=0;}
+ //==============setime================================================
+ if(setime==1){
+    
+    if(halfday==0){ 
+    rtc.halt(false);
+    rtc.writeProtect(false);  
+    if(hrx<12){ rtc.setTime((hrx), (minx), (secx));}
+    if(hrx==12){ rtc.setTime(0, (minx), (secx));}
+    rtc.setDOW(dayx); } 
+    
+    if(halfday==1){ 
+    rtc.halt(false);
+    rtc.writeProtect(false);      
+    if(hrx<12){ rtc.setTime((hrx+12), (minx), (secx)); }
+    if(hrx==12){ rtc.setTime(12, (minx), (secx)); }
+    rtc.setDOW((dayx)); } 
+    
+    setime=0;     
+  } 
+ //==============second timer================================================
+  t3=millis(); 
+  if (t3-t4>=1000){
+   secx++;  
+   for(int x=0; x<11;x++) LED[x]=255;
+  t4=t3;  
+  }
+
+
+  t5=millis(); 
+  if (t5-t6>=500){  
+   for(int x=0; x<11;x++) LED[x]=255;
+  t6=t5;  
+  }
+
+ 
+///===============multiplexing================================================
+
+ t1=micros();
+  if (t1-t2>=5){
+    
+     counter++;
+    if(counter==9) counter=1;
+ 
+  if (counter==1){
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }     
+
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000001);   
+    digitalWrite(latchPin, HIGH);  
+
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 7));
+}
+         
+  }   
+  
+  if (counter==2){  
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }      
+    
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000010);     
+    digitalWrite(latchPin, HIGH); 
+
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 6));
+} 
+  }   
+
+  if (counter==3){  
+
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000100);     
+    digitalWrite(latchPin, HIGH);    
+
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 5));
+} 
+  }   
+
+  if (counter==4){ 
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }          
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00001000); 
+    digitalWrite(latchPin, HIGH);    
+
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 4));
+}           
+  }   
+
+  if (counter==5){   
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }          
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00010000);      
+    digitalWrite(latchPin, HIGH);  
+
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 3));
+}      
+  }   
+
+  if (counter==6){   
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00100000); 
+    digitalWrite(latchPin, HIGH); 
+
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 2));
+}  
+  }   
+
+  if (counter==7){
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B01000000);      
+    digitalWrite(latchPin, HIGH);    
+    
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 1));
+}
+  }   
+
+  if (counter==8){  
+    
+  for(int x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B10000000);    
+    digitalWrite(latchPin, HIGH);  
+    
+for(int x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 0));
+}    
+  }   
+  
+
+  t2=t1;
+  }
+
+}
+
+
+void dayF () {
+
+switch (dayx){
+case 1:
+LED[2]=LED[2]&B11111110;
+break;
+
+case 2:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+break;
+
+case 3:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+break;
+
+case 4:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+break;
+
+case 5:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+break;
+
+case 6:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+break;
+
+case 7:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+LED[8]=LED[8]&B11111110;
+break;
+
+}
+}
+
+
+
