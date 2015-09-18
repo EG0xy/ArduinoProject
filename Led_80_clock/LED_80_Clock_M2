@@ -26,7 +26,9 @@ int minx=15;
 int hrx=10;
 int hry=0;
 int halfday=0;
-int dayx=1;
+int dayx=4;
+
+int mode=0;
 
 byte LED[11]={255,255,255,255,255,255,255,255,255,255};
 byte shift=B11111111;
@@ -77,23 +79,177 @@ ba.Update();
 bb.Update(); 
 bc.Update();  
 
-bitWrite(LED[((secx-1)%10)], 7-((secx-1)/10), 1); 
-if(secx==60){secx=0; minx++; for(int x=0; x<11;x++) LED[x]=255;}
-if(minx==60){minx=0; hrx++;}
-if(hrx==12){hrx=0;halfday++;}
-if(halfday==2){halfday=0; dayx++;}
-if(dayx==8){dayx=1;}
+//=======================buttons
 
+  if(ba.clicks==1) {mode++;}
+  if(ba.clicks==-1) {mode=0;}
+  
+  if(bb.clicks==-1) {}
+  if(bc.clicks==-1) {}
+
+//=======================clock display
+
+bitWrite(LED[((secx-1)%10)], 7-((secx-1)/10), 1); 
+if(secx==60){secx=0; minx++; }
+if(minx==60){minx=0; hrx++; }
+if(minx==-1){minx=59;}
+if(hrx==12){hrx=0;halfday++;}
+if(hrx==-1){hrx=11;}
+if(halfday==2){halfday=0;dayx++;}
+if(halfday==-1){halfday=1;}
+if(dayx==8){dayx=1;}
+if(dayx==0){dayx=7;}
+
+if(mode==0){
+  
 bitWrite(LED[(secx%10)], 7-(secx/10), 0); 
 LED[minx%10]=LED[minx%10] & (bitWrite(shift, (7-(minx/10)), 0)); 
 bitWrite(shift, (7-(minx/10)), 1);
 LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (1-(hrx/10)), 0));
 bitWrite(shift, (1-(hrx/10)), 1);
-LED[dayx+1]=LED[dayx+1] & (bitWrite(shift, 0, 0));
-bitWrite(shift, 0, 1);
 
-if(halfday==0){LED[9]=LED[9]|B00000001;}
-if(halfday==1){LED[9]=LED[9]&B11111110;}
+switch (dayx){
+case 1:
+LED[2]=LED[2]&B11111110;
+break;
+
+case 2:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+break;
+
+case 3:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+break;
+
+case 4:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+break;
+
+case 5:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+break;
+
+case 6:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+break;
+
+case 7:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+LED[8]=LED[8]&B11111110;
+break;
+
+}
+
+if(halfday==0){LED[9]=LED[9]&B11111110;}
+if(halfday==1){LED[9]=LED[9]|B00000001;}
+}
+
+//set hr
+if(mode==1){
+  if(bb.clicks==1) {hrx--;}
+  if(bc.clicks==1) {hrx++;}
+
+LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (1-(hrx/10)), 0));
+bitWrite(shift, (1-(hrx/10)), 1);  
+}
+
+//set min
+if(mode==2){
+  if(bb.clicks==1) {minx--;}
+  if(bc.clicks==1) {minx++;} 
+ 
+LED[minx%10]=LED[minx%10] & (bitWrite(shift, (7-(minx/10)), 0)); 
+bitWrite(shift, (7-(minx/10)), 1);  
+}
+
+//set am/pm
+if(mode==3){
+  if(bb.clicks==1) {halfday--;}
+  if(bc.clicks==1) {halfday++;}
+
+if(halfday==0){LED[9]=LED[9]&B11111110;}
+if(halfday==1){LED[9]=LED[9]|B00000001;}  
+}
+
+//set dow
+if(mode==4){
+  if(bb.clicks==1) {dayx--;}
+  if(bc.clicks==1) {dayx++;}  
+  
+switch (dayx){
+case 1:
+LED[2]=LED[2]&B11111110;
+break;
+
+case 2:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+break;
+
+case 3:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+break;
+
+case 4:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+break;
+
+case 5:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+break;
+
+case 6:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+break;
+
+case 7:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+LED[8]=LED[8]&B11111110;
+break;
+
+}  
+}
+
+if(mode==5){mode=0;}
  //==============setime================================================
  if(setime==1){
     
@@ -115,8 +271,9 @@ if(halfday==1){LED[9]=LED[9]&B11111110;}
   } 
  //==============second timer================================================
   t3=millis(); 
-  if (t3-t4>=1){
+  if (t3-t4>=1000){
    secx++;  
+   for(int x=0; x<11;x++) LED[x]=255;
   t4=t3;  
   }
 
