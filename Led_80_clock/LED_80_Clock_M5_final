@@ -30,6 +30,8 @@ ClickButton bc(A2, LOW, CLICKBTN_PULLUP);
 //===GOBALs Starts==================================================
 byte counter=1; // counter for multiplexing switch
 int sInt=1000;
+byte flash=0;
+int plex=10;
 unsigned long t1=0; // timer for multiplexing switch
 unsigned long t2=0;
 
@@ -92,11 +94,8 @@ t = rtc.getTime();
 
 // ds1302 chip hr range: 0-23; min range:0-59; sec range 0-59;
 // convert 24 hr to 12 with am. pm.
-  if(hry<12 && hry>0){hrx=hry; halfday=0;}  
-  if(hry==0 ){hrx=12; halfday=0;} 
-  
-  if(hry>=13){hrx=hry-12; halfday=1;}   
-  if(hry==12){hrx=12; halfday=1;}   
+    if(hry<12){hrx=hry; halfday=0;}  
+    if(hry>=12){hrx=hry-12; halfday=1;}    
   
   
 }  
@@ -128,11 +127,8 @@ bc.Update();
      secx=t.sec;
      
      
-    if(hry<12 && hry>0){hrx=hry; halfday=0;}  
-    if(hry==0 ){hrx=12; halfday=0;} 
-    
-    if(hry>=13){hrx=hry-12; halfday=1;}   
-    if(hry==12){hrx=12; halfday=1;}  
+    if(hry<12){hrx=hry; halfday=0;}  
+    if(hry>=12){hrx=hry-12; halfday=1;}   
 }    
 
 //=======================clock display
@@ -142,8 +138,10 @@ if(dsmode==0){bitWrite(dsLEDx[((secx-1)%10)], 7-((secx-1)/10), 0);}
 if(secx==60){secx=0; minx++; }
 if(minx==60){minx=0; hrx++; }
 if(minx==255){minx=59;}
+
 if(hrx==12){hrx=0;halfday++;}
 if(hrx==255){hrx=11;}
+
 if(halfday==2){halfday=0;dayx++;}
 if(halfday==255){halfday=1;}
 if(dayx==8){dayx=1;}
@@ -155,6 +153,7 @@ if(showmode==0){
 
 if(mode==0){
 if(bb.clicks==1) {dsmode=!dsmode;}
+if(bc.clicks==1) {flash++;}
 
 if(dsmode==0){  
 bitWrite(LED[(secx%10)], 7-(secx/10), 0); 
@@ -283,7 +282,7 @@ LED[love%10]=LED[love%10] & (bitWrite(sbit,(7-love/10), 0));
 
 
   t5=millis(); 
-  if (t5-t6>=100){  
+  if (t5-t6>=50){  
   for(byte x=0; x<10;x++) {
    LED[x]=255;  
    dsLED[x]=dsLED[x]|B11111111; 
@@ -293,9 +292,29 @@ LED[love%10]=LED[love%10] & (bitWrite(sbit,(7-love/10), 0));
 
  
 ///===============multiplexing================================================
+//10
+// 10000
+
+switch (flash){
+case 0:
+plex=10;
+break;
+
+case 1:
+plex=5000;
+break;
+
+case 2:
+plex=10000;
+break;
+}
+
+if(flash==3){flash=0;}
+
+
 
  t1=micros();
-  if (t1-t2>=5){
+  if (t1-t2>=plex){
     
      counter++;
     if(counter==9) counter=1;
