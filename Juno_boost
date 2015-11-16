@@ -1,0 +1,329 @@
+/*
+0-7  >> A-G+dot
+8-11 >> active low
+*/
+
+#include "ClickButton.h"
+ClickButton ba(A3, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A4, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A5, LOW, CLICKBTN_PULLUP);
+
+//--gobal------------------------------------------------------------
+
+int power = A2;
+int led = 13;
+
+int relayon = 0;
+
+int Vout = A6;
+int Aout = A7;
+
+int mode = 0;
+int menu = 0;
+int cd = 0;
+int cdmenu = 0;
+
+int v = 0;
+int ma = 0;
+int p = 0;
+int number = 0;
+
+int timer = 0;
+int cmin = 0;
+int csec = 0;
+int countdown = 0;
+
+unsigned long vtotal = 0;
+unsigned long matotal = 0;
+int scount = 0;
+
+byte counter = 0;
+unsigned long cta = 0;
+unsigned long ctb = 0;
+
+unsigned long rta = 0;
+unsigned long rtb = 0;
+
+byte dg1 = 0;
+byte dg2 = 0;
+byte dg3 = 0;
+byte dg4 = 0;
+
+const byte digit[] =
+{
+  B00111111, // 0
+  B00110000, // 1
+  B01011011, // 2
+  B01111001, // 3
+  B01110100, // 4
+  B01101101, // 5
+  B01101111, // 6
+  B00111000, // 7
+  B01111111, // 8
+  B01111101, // 9
+  B00000000, // BLANK
+  B10000000
+}; //dot
+
+//--setup------------------------------------------------------------
+
+void setup() {
+
+  for (byte x = 0; x < 12; x++) {
+    pinMode (x, OUTPUT);
+  }
+
+  pinMode (13, OUTPUT);
+  pinMode (A2, OUTPUT);
+
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50;
+  bc.multiclickTime = 50;
+
+  ba.debounceTime = 50;
+  bb.debounceTime = 50;
+  bc.debounceTime = 50;
+  analogReference (INTERNAL);
+}
+
+//--loop------------------------------------------------------------
+
+void loop() {
+
+  ba.Update();
+  bb.Update();
+  bc.Update();
+
+
+  if (relayon == 0) {
+    digitalWrite(13, LOW);
+    digitalWrite(A2, LOW);
+  }
+
+  if (relayon == 1) {
+    digitalWrite(13, HIGH);
+    digitalWrite(A2, HIGH);
+  }
+
+
+  if (ba.clicks == -1) {
+    cd = 0;
+  }
+  if (bb.clicks == -1) {
+    cd = 1;
+  }
+  //==================================================
+
+  if (cd == 1) { //delay off
+    if (countdown == 0) {
+      dg1 = digit[cmin / 10];
+    }
+    if (countdown == 1) {
+      dg1 = digit[cmin / 10] | B10000000;
+    }
+    dg2 = digit[cmin % 10];
+
+    if (timer == 0) {
+      dg3 = digit[csec / 10];
+    }
+    if (timer == 1) {
+      dg3 = digit[csec / 10] | B10000000;
+    }
+    dg4 = digit[csec % 10];
+
+    if (ba.clicks == 1) {
+      countdown = !countdown;
+    }
+    if (bb.clicks == 1) {
+      cmin++;
+    }
+    if (bc.clicks == 1) {
+      csec++;
+    }
+    if (bc.clicks == -1) {
+      countdown = 0;
+      cmin = 0;
+      csec = 0;
+    }
+  }
+
+
+  if (cd == 0) {
+    if (ba.clicks == 1) {
+      mode = !mode;
+    }
+
+    if (mode == 0) {
+      relayon = 0;
+      if (countdown == 0) {
+        dg1 = digit[v / 1000];
+      }
+      if (countdown == 1) {
+        dg1 = digit[v / 1000] | B10000000;
+      }
+      dg2 = digit[v / 100 % 10];
+      dg3 = digit[v / 10 % 10] | B10000000;
+      dg4 = digit[v / 1 % 10];
+    }
+
+    if (mode == 1) {
+
+      relayon = 1;
+      if (menu == 0) {
+        if (countdown == 0) {
+          dg1 = digit[v / 1000];
+        }
+        if (countdown == 1) {
+          dg1 = digit[v / 1000] | B10000000;
+        }
+        dg2 = digit[v / 100 % 10];
+        dg3 = digit[v / 10 % 10] | B10000000;
+        dg4 = digit[v / 1 % 10];
+      }
+
+      if (menu == 1) {
+        dg1 = digit[ma / 1000];
+        dg2 = digit[ma / 100 % 10];
+        dg3 = digit[ma / 10 % 10];
+        dg4 = digit[ma / 1 % 10];
+      }
+
+      if (menu == 2) {
+        dg1 = digit[p / 1000] | B10000000;
+        dg2 = digit[p / 100 % 10] | B10000000;
+        dg3 = digit[p / 10 % 10] | B10000000;
+        dg4 = digit[p / 1 % 10] | B10000000;
+      }
+
+      if (bb.clicks == 1) {
+        menu--;
+      }
+      if (bc.clicks == 1) {
+        menu++;
+      }
+
+      if (menu == 3) {
+        menu = 0;
+      }
+      if (menu == -1) {
+        menu = 2;
+      }
+    }
+  }
+
+  //---------------------------------------------------------------
+
+
+
+  rta = millis();
+  if (rta - rtb >= 1000) {
+    timer = !timer;
+
+    if (countdown == 1 && (csec != 0 || cmin != 0) ) {
+      csec--;
+      if (csec == -1) {
+        csec = 59;
+        cmin--;
+      }
+      if (csec == 0 && cmin == 0) {
+        relayon = !relayon;
+        mode = !mode;
+        if (cd == 0) {
+          mode = !mode;
+        } countdown = 0;
+      }
+    }
+
+
+    rtb = rta;
+  }
+
+
+  // LED display driver - Multiplexing + V Ma ------------------------------------
+
+  cta = millis();
+  if (cta - ctb >= 2) {
+
+
+    if (scount >= 50) {
+      v = vtotal / 50;
+      ma = matotal / 50;
+      if (v * ma < 999900) {
+        p = v / 10 * ma / 10;
+      }
+      if (v * ma > 999900) {
+        p = 8888;
+      }
+
+      scount = 0;
+      vtotal = 0;
+      matotal = 0;
+    }
+
+    int vread = analogRead (A6);
+    vtotal = vtotal + (vread / 0.083 * 100 * 2.56 / 0.977 / 1024);
+
+    int maread = analogRead (A7);
+    matotal = matotal + (maread * 2.56 * 1000 / 0.977 / 1024);
+
+    scount++;
+
+
+    counter++;
+    if (counter == 5)counter = 0;
+
+    if (counter == 0) {
+      digitalWrite(11, HIGH);
+      for (byte x = 0; x < 8; x++) {
+        digitalWrite(x, LOW);
+      }
+
+      for (byte dr = 0; dr < 8; dr++) {
+        digitalWrite(dr, bitRead(dg1, dr));
+      }
+      digitalWrite(8, LOW);
+    }
+
+    if (counter == 1) {
+
+      digitalWrite(8, HIGH);
+      for (byte x = 0; x < 8; x++) {
+        digitalWrite(x, LOW);
+      }
+
+      for (byte dr = 0; dr < 8; dr++) {
+        digitalWrite(dr, bitRead(dg2, dr));
+      }
+      digitalWrite(9, LOW);
+    }
+
+    if (counter == 2) {
+
+      digitalWrite(9, HIGH);
+      for (byte x = 0; x < 8; x++) {
+        digitalWrite(x, LOW);
+      }
+
+      for (byte dr = 0; dr < 8; dr++) {
+        digitalWrite(dr, bitRead(dg3, dr));
+      }
+      digitalWrite(10, LOW);
+    }
+
+    if (counter == 3) {
+
+      digitalWrite(10, HIGH);
+      for (byte x = 0; x < 8; x++) {
+        digitalWrite(x, LOW);
+      }
+
+      for (byte dr = 0; dr < 8; dr++) {
+        digitalWrite(dr, bitRead(dg4, dr));
+      }
+      digitalWrite(11, LOW);
+    }
+
+    ctb = cta;
+  }
+
+}
