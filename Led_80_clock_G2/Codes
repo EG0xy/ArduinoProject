@@ -1,0 +1,651 @@
+/* 2016-1-1
+These are the switches for turning on 80 LEDS, they are active LOW;
+An simple array is used in the program instead: byte LED[11]={255,255,255,255,255,255,255,255,255,255};
+byte  led1=B11111111;  //(1,11,21,31,41,51,61,71)  
+byte  led2=B11111111;  //(2,12,22,32,42,52,62,72)  
+byte  led3=B11111111;  //(3,13,23,33,43,53,63,73)
+byte  led4=B11111111;  //(4,14,24,34,44,54,64,74)
+byte  led5=B11111111;  //(5,15,25,35,45,55,65,75)
+byte  led6=B11111111;  //(6,16,26,36,46,56,66,76)
+byte  led7=B11111111;  //(7,17,27,37,47,57,67,77)
+byte  led8=B11111111;  //(8,18,28,38,48,58,68,78)
+byte  led9=B11111111;  //(9,19,29,39,49,59,69,79)
+byte led10=B11111111; //(10,20,30,40,50,60,70,80)
+The HIGHs are from the atmega8 Chip's 8 digital pin: 1-8;  
+Total 10x8=80 LED matrix
+hr12 = ((hr24 + 11) % 12) + 1;
+
+12-1-2-3-4-5-6-7-8-9-10-11 AM (internally - Atmega8)
+12-1-2-3-4-5-6-7-8-9-10-11 PM
+
+00-01-02-03-04-05-06-07-08-09-10-11 AM (externally - DS1302)
+12-13-14-15-16-17-18-19-20-21-22-23 PM
+*/
+
+#include <EEPROM.h>
+#include "ClickButton.h"
+#include <DS1302.h>
+DS1302 rtc(A3, A4, A5);
+Time t;
+
+byte latchPin = 13; 
+byte clockPin = 12; 
+byte dataPin = 11; 
+
+ClickButton ba(A0, LOW, CLICKBTN_PULLUP);
+ClickButton bb(A1, LOW, CLICKBTN_PULLUP);
+ClickButton bc(A2, LOW, CLICKBTN_PULLUP);
+
+//===GOBALs Starts==================================================
+byte counter=1; // counter for multiplexing switch
+unsigned long t1=0; // timer for multiplexing switch
+unsigned long t2=0;
+
+unsigned long t3=0;
+unsigned long t4=0;
+
+unsigned long t5=0;
+unsigned long t6=0;
+boolean readtime=0;
+boolean setime=0;
+byte secx=0;//internal time
+byte minx=0;//internal time
+byte hrx=0; //internal time
+byte hry=0;//buffer time***
+byte hrz=0;//buffer time***
+byte lasthr=0;
+byte halfday=0;//internal time
+byte dayx=0; //internal time
+boolean sectog=0;
+
+
+byte mode=0; //control mode
+boolean dsmode=0;//displaymode
+boolean showmode=0;// led light showmode
+boolean secModmode=0; // increase accuracy mode
+
+byte LED[11]={255,255,255,255,255,255,255,255,255,255};
+byte dsLED[11]={255,255,255,255,255,255,255,255,255,255};
+byte dsLEDx[11]={0,0,0,0,0,0,0,0,0,0};
+byte shift=B11111111;
+
+byte loveu=0;
+byte love=0;
+byte hate=0;
+byte sbit=255;
+byte tbit=255;
+byte ssmode=0;
+byte scount=0;
+
+int backled;
+
+byte rom;
+byte secHD=0; // use this to increase the accuracy of the clock
+byte secHDten=0;
+int modSec=0; // real value
+int modSecten=0;
+boolean flasher=0;
+
+int modSecPrint=0;
+boolean sect=0;
+byte smmode=0;
+byte hrCount=1;
+boolean tenhr=0;
+//============================================GOBALs END================
+
+//===SETUPs Start==========================================================================
+
+void setup() {
+  
+  rom=EEPROM.read(0);
+  if(rom!=0){                     // Run for first time only, Zero Out eepRom for storing the timing accuracy values
+  EEPROM.write(0, 0);
+  EEPROM.write(1, 100);  //Value to change the timing of the clock: 100 as 0; 99=-1; 101=+1 and etc (update every 1 hr)
+  EEPROM.write(2, 100);  //Value to change the timing of the clock: 100 as 0; 99=-1; 101=+1 and etc (update every 10 hr)
+  }
+ 
+  
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  
+ for(byte x=0; x<11; x++){
+ pinMode(x, OUTPUT); 
+ } 
+ 
+  for(byte x=1; x<11; x++){  //p1-p10-active LOW
+digitalWrite(x,HIGH);
+ }     
+    
+  ba.multiclickTime = 50;
+  bb.multiclickTime = 50; 
+  bc.multiclickTime = 50; 
+
+  ba.debounceTime = 50;
+  bb.debounceTime = 50; 
+  bc.debounceTime = 50;  
+  
+ rtc.halt(false);
+t = rtc.getTime();
+ dayx=t.dow;
+ hry=t.hour;
+ minx=t.min;
+ secx=t.sec; 
+
+// ds1302 chip hr range: 0-23; min range:0-59; sec range 0-59;
+// convert 24 hr to 12 with am. pm. halfday=0=am
+  hrx = ((hry + 11) % 12) + 1;
+  if(hry<=11 ){halfday=0;}  
+  if(hry>=12){halfday=1;}   
+  
+  lasthr=hrx;
+  
+  secHD=EEPROM.read(1);
+  modSec=secHD-100;
+  
+  secHDten=EEPROM.read(2);
+  modSecten=secHDten-100;
+  
+}  
+//==============================================================SETUPs ENDs====
+
+void loop() {
+  
+ba.Update();
+bb.Update(); 
+bc.Update();  
+digitalWrite(0,sectog); //added one more led, pin 0. Flashing a black led every second. can be use as Rx pin.
+  
+
+  
+//=======================buttons mode - Program flow
+
+  if(ba.clicks==-1){showmode=!showmode;} // LED light show mode, for fun and to verify the soldering job.
+  
+  
+ //================= update internal clock every 1 minutes, nothing change
+  if(secx%30==0 && mode==0){
+    
+    rtc.halt(false);
+    t = rtc.getTime();
+     dayx=t.dow;
+     hry=t.hour;
+     minx=t.min;
+     secx=t.sec;
+     
+  hrx = ((hry + 11) % 12) + 1;
+  if(hry<=11 ){halfday=0;}  
+  if(hry>=12){halfday=1;}  
+  
+}    
+
+//===xxx=====6.5s+========= update ds1302 every 1hr (6+)
+   
+   if(lasthr!=hrx && minx==30 && secx==30 && mode==0){
+    lasthr=hrx;
+    
+    rtc.halt(false);
+    t = rtc.getTime();
+     dayx=t.dow;
+     hry=t.hour;
+     minx=t.min;
+     secx=t.sec+modSec;
+
+     if( hrCount==10){  // update ds1302 every 10hr
+     secx=secx+modSecten; 
+     hrCount=0;
+     }    
+     
+  hrx = ((hry + 11) % 12) + 1;
+  if(hry<=11 ){halfday=0;}  
+  if(hry>=12){halfday=1;}    
+  
+   setime=1;   
+}
+
+//=======================clock display
+
+if(dsmode==1){bitWrite(LED[((secx-1)%10)], 7-((secx-1)/10), 1);} 
+if(dsmode==0){bitWrite(dsLEDx[((secx-1)%10)], 7-((secx-1)/10), 0);} 
+if(secx==60){secx=0; minx++; }
+if(minx==60){minx=0; hrx++; hrCount++; }
+if(minx==255){minx=59;}
+if(hrx==12 ){hrx=0;}
+if(hrx==12 && (mode!=1 || mode!=2 || mode!=3 || mode!=4)){ dayx++;}
+if(hrx==255){hrx=11;}
+if(halfday==2){halfday=0;dayx++;}
+if(halfday==255){halfday=1;}
+if(dayx==8){dayx=1;}
+if(dayx==0){dayx=7;}
+
+if(showmode==0){  
+//Mode0  -------------------------------------------------------------------------------------------
+
+if(secModmode==0){
+  
+ 
+  if(ba.clicks==1) {mode++;}   
+  if(bb.clicks==-1){secx=0; setime=1;} 
+
+  
+if(mode==0){
+if(bb.clicks==1) {dsmode=!dsmode;}
+if(bc.clicks==1) {secModmode=1;}   
+  
+  
+if(dsmode==0){  
+bitWrite(LED[(secx%10)], 7-(secx/10), 0); 
+LED[minx%10]=LED[minx%10] & (bitWrite(shift, (7-(minx/10)), 0)); 
+bitWrite(shift, (7-(minx/10)), 1);
+}
+
+if(dsmode==1){  
+for(byte s=0; s<=minx; s++){
+bitWrite(dsLED[s%10], (7-(s/10)), 0);
+}
+
+if(minx==59){
+for(byte x=0; x<10;x++){
+dsLED[x]=dsLED[x]|B11111100;
+}  
+}
+
+bitWrite(dsLEDx[(secx%10)], 7-(secx/10), 1); 
+
+for(byte s=0; s<10; s++){
+LED[s]=LED[s]&dsLED[s];
+}  
+
+for(byte s=0; s<10; s++){
+LED[s]=LED[s]^dsLEDx[s];
+}  
+}
+
+
+LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (1-(hrx/10)), 0));
+bitWrite(shift, (1-(hrx/10)), 1);
+
+dayF();
+
+if(halfday==0){LED[9]=LED[9]&B11111110;}
+if(halfday==1){LED[9]=LED[9]|B00000001;}
+}
+
+//set min  -------------------------------setting time------------------------------------------------------------
+if(mode==1){
+  if(bb.clicks==1) {minx--;  }
+  if(bc.clicks==1) {minx++; } 
+  setime=1;
+LED[minx%10]=LED[minx%10] & (bitWrite(shift, (7-(minx/10)), 0)); 
+bitWrite(shift, (7-(minx/10)), 1);  
+}
+
+//set hr  ------------------------------------------------------
+if(mode==2){
+  if(bb.clicks==1) {hrx--;}
+  if(bc.clicks==1) {hrx++;}
+  setime=1; 
+
+LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (1-(hrx/10)), 0));
+bitWrite(shift, (1-(hrx/10)), 1); 
+
+}
+
+
+
+//set am/pm  ------------------------------------------------------
+if(mode==3){
+  if(bb.clicks==1) {halfday--;}
+  if(bc.clicks==1) {halfday++;}
+  setime=1; 
+  
+if(halfday==0){LED[9]=LED[9]&B11111110;}
+if(halfday==1){LED[9]=LED[9]|B00000001;}  
+}
+
+//set dow  ------------------------------------------------------
+if(mode==4){ 
+  if(bb.clicks==1) {dayx--;}
+  if(bc.clicks==1) {dayx++;}  
+  setime=1; 
+  
+dayF();
+
+}
+
+if(mode==5){mode=0;}
+}
+
+
+//-----------------------------------------------------------------------------------
+if(secModmode==1){
+ 
+  
+  sect=0;
+  if(bc.clicks==1){smmode=!smmode;} 
+  if(bc.clicks==-1) {secModmode=0; mode=0; smmode=0; sect=1;}   
+  
+  if(smmode==1){
+  if(ba.clicks==1) {modSec--;}
+  if(bb.clicks==1) {modSec++;} 
+  
+if(modSec>=0){modSecPrint=modSec;} 
+else {modSecPrint=modSec+60;}
+
+LED[modSecPrint%10]=LED[modSecPrint%10] & (bitWrite(shift, (7-(modSecPrint/10)), 0)); 
+bitWrite(shift, (7-(modSecPrint/10)), 1);  
+if(flasher==1){
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+LED[8]=LED[8]&B11111110;}
+else{
+LED[2]=LED[2]&B11111111;
+LED[3]=LED[3]&B11111111;
+LED[4]=LED[4]&B11111111;
+LED[5]=LED[5]&B11111111;
+LED[6]=LED[6]&B11111111;
+LED[7]=LED[7]&B11111111;
+LED[8]=LED[8]&B11111111;}
+
+  }
+  
+  if(smmode==0){
+  if(ba.clicks==1) {modSecten--; }
+  if(bb.clicks==1) {modSecten++;} 
+   
+if(modSecten>=0){modSecPrint=modSecten;} 
+else {modSecPrint=modSecten+12;}
+
+LED[modSecPrint%10]=LED[modSecPrint%10] & (bitWrite(shift, (1-(modSecPrint/10)), 0));
+bitWrite(shift, (1-(modSecPrint/10)), 1); 
+if(flasher==1){
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+LED[8]=LED[8]&B11111110;}
+else{
+LED[2]=LED[2]|B00000001;
+LED[3]=LED[3]|B00000001;
+LED[4]=LED[4]|B00000001;
+LED[5]=LED[5]|B00000001;
+LED[6]=LED[6]|B00000001;
+LED[7]=LED[7]|B00000001;
+LED[8]=LED[8]|B00000001;}
+  }
+  
+}
+}
+
+//==SHOW MODE=============================================================================================================================
+//LED[hrx%10]=LED[hrx%10] & (bitWrite(shift, (7-(hrx/10)), 0));
+
+if(showmode==1){ 
+ 
+if(ssmode==0){
+if(scount==100){scount=0; ssmode++;}
+LED[love%10]=LED[love%10] & (bitWrite(sbit,(7-love/10), 0));
+bitWrite(sbit,(1-love/10), 1); 
+}
+
+if(ssmode==1){
+if(scount==50){scount=0; ssmode++;}
+LED[hate%10]=LED[hate%10] & (bitWrite(sbit,(1-hate/10), 0));
+bitWrite(sbit,(7-hate/10), 1); 
+}
+
+if(ssmode==2){
+if(scount==100){scount=0; ssmode++;}
+LED[hate%10]=LED[hate%10] & (bitWrite(sbit,(7-hate/10), 0));
+bitWrite(sbit,(1-hate/10), 1); 
+}
+
+if(ssmode==3){
+if(scount==50){scount=0; ssmode=0;}
+LED[love%10]=LED[love%10] & (bitWrite(sbit,(1-love/10), 0));
+bitWrite(sbit,(7-love/10), 1);   
+}
+
+}
+ //==============setime================================================
+ if(setime==1){
+        
+ 
+    rtc.halt(false);
+    rtc.writeProtect(false);  
+    if(halfday==0){
+      if(hrx<=11) {rtc.setTime((hrx), (minx), (secx));}      
+      else {rtc.setTime((0), (minx), (secx));}
+    }
+    
+    if(halfday==1){
+      if(hrx<=11) {rtc.setTime((hrx+12), (minx), (secx));} 
+      else {rtc.setTime((12), (minx), (secx));}
+    }    
+      
+    rtc.setDOW(dayx);  
+    setime=0;     
+  } 
+  
+//============================================
+ // update this value only if it has been changed, As eepRom has limited write lifespan. 
+ if(sect==1){
+  secHD=EEPROM.read(1);
+  if(secHD-100!=modSec){ EEPROM.write(1, (modSec+100)); }
+  
+  secHDten=EEPROM.read(2);
+  if(secHDten-100!=modSecten){ EEPROM.write(2, (modSecten+100));  }
+  sect=0;
+} 
+  
+ 
+ //==============second timer================================================
+  t3=millis(); 
+  if (t3-t4>=1000){
+   secx++; 
+   sectog=!sectog;
+  t4=t3;  
+  }
+
+
+  t5=millis(); 
+  if (t5-t6>=100){
+   flasher=!flasher; 
+   scount++;
+   love++;
+   hate--;   
+  for(byte x=0; x<10;x++) {
+   LED[x]=255;  
+   dsLED[x]=dsLED[x]|B11111111; 
+   dsLEDx[x]=dsLEDx[x]&B00000000;}   
+  t6=t5;  
+  }
+
+  if(love==60){love=0;}
+  if(hate==-1){hate=59;}  
+///===============multiplexing================================================
+
+ t1=micros();
+  if (t1-t2>=5){
+    
+     counter++;
+    if(counter==9) counter=1;
+ 
+  if (counter==1){
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }     
+
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000001);   
+    digitalWrite(latchPin, HIGH);  
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 7));
+}
+         
+  }   
+  
+  if (counter==2){  
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }      
+    
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000010);     
+    digitalWrite(latchPin, HIGH); 
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 6));
+} 
+  }   
+
+  if (counter==3){  
+
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000100);     
+    digitalWrite(latchPin, HIGH);    
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 5));
+} 
+  }   
+
+  if (counter==4){ 
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }          
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00001000); 
+    digitalWrite(latchPin, HIGH);    
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 4));
+}           
+  }   
+
+  if (counter==5){   
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }          
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00010000);      
+    digitalWrite(latchPin, HIGH);  
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 3));
+}      
+  }   
+
+  if (counter==6){   
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00100000); 
+    digitalWrite(latchPin, HIGH); 
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 2));
+}  
+  }   
+
+  if (counter==7){
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B01000000);      
+    digitalWrite(latchPin, HIGH);    
+    
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 1));
+}
+  }   
+
+  if (counter==8){  
+    
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B10000000);    
+    digitalWrite(latchPin, HIGH);  
+    
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(LED[x], 0));
+}    
+  }   
+  
+
+  t2=t1;
+  }
+
+}
+
+
+void dayF () {
+
+switch (dayx){
+case 1:
+LED[2]=LED[2]&B11111110;
+break;
+
+case 2:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+break;
+
+case 3:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+break;
+
+case 4:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+break;
+
+case 5:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+break;
+
+case 6:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+break;
+
+case 7:
+LED[2]=LED[2]&B11111110;
+LED[3]=LED[3]&B11111110;
+LED[4]=LED[4]&B11111110;
+LED[5]=LED[5]&B11111110;
+LED[6]=LED[6]&B11111110;
+LED[7]=LED[7]&B11111110;
+LED[8]=LED[8]&B11111110;
+break;
+
+}
+}
+
+
