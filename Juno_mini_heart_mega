@@ -1,0 +1,28 @@
+/*
+D0-D8, D13; 10 digital outputs/10 leds
+D9, D10; 2 mosfet output;
+A0-A2 A-C buttons
+
+*/
+
+int ledOut[10]={0,1,2,3,4,5,6,7,8,13}; //map out 10 led pins
+
+void setup() {
+for (int x=0; x<9;x++){
+  pinMode(ledOut[x], OUTPUT);}  
+  
+}
+
+void loop() {
+
+for (int x=0; x<9;x++){
+  digitalWrite(ledOut[x], HIGH);}  
+  
+  delay(100);  
+
+for (int x=0; x<9;x++){
+  digitalWrite(ledOut[x], LOW);}  
+  
+  delay(1000); 
+  
+}
