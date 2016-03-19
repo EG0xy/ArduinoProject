@@ -64,7 +64,7 @@
 
   ; Maximum Number of...:
 
-  mnVias          =   50
+  mnVias          =   20
   mnSegments      = 9999
   mnExtdSteps     = 9999
   mnRipupLevel    =   10
@@ -76,7 +76,6 @@
   @Route
 
   Active          =    1
-  mnVias          =   20
 
 [Busses]
 
@@ -134,4 +133,28 @@
 
   Active          =    1
   cfChangeDir     =   25
+
+[Optimize5]
+
+  @Optimize4
+
+  Active          =    1
+
+[Optimize6]
+
+  @Optimize5
+
+  Active          =    1
+
+[Optimize7]
+
+  @Optimize6
+
+  Active          =    1
+
+[Optimize8]
+
+  @Optimize7
+
+  Active          =    1
 
