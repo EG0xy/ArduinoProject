@@ -121,7 +121,7 @@ if(disCounter==0){
   //}
   
   // basically a simple assignment. but because this single digit involves Two regisiters, 
-  // we need to use bitshift and mask out the values we don't want which are PORTD:0-1 and PORTB:2-5(or d1-d2, D10-d13)
+  // we need to use bitshift and mask out the values we don't want which are PORTD:0-1 and PORTB:2-5(or d0-d1, D10-d13)
   PORTD = 0b11111100 & (dg4<<2); //dg4= 1234, the fourth number.
   PORTB = 0b00000011 & (dg4>>6);   
   
