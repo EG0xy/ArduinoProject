@@ -1,0 +1,150 @@
+/*
+//Juno-Mini V2 Pinouts+
+
+//D10-mosfet
+//A7-buttonA(0*Vcc)-buttonB(1/2*Vcc)-buttonC(2/3*Vcc)
+//A6- 0.1 ohm shunt resistor
+//D2-D9 anodes of 7-seg led (or 8 leds)
+//A0-A3 cathodes of 7-seg 4 digit
+
+//Nrf24- (CSN=0; CE=1;)
+*/
+
+// ===================================
+// 7-segment LED display example code
+
+// These variables are used for multiflexing the LED display.
+byte disCounter=0;
+int disTimera=0;
+int disTimerb=0;
+
+//4 byte for 4 digits ( to display a number, use digit array mapping, 
+//For example: "dg1=digit[1];" will display 1; or you can do this "dg1=B00110000;" 
+//it's easier to read and write codes using array mapping)
+byte dg1=B00110000; 
+byte dg2=B01011011;
+byte dg3=B01111001;
+byte dg4=B01110100;
+
+//simplify 4 digits into just two: left and right for easier code writing.
+byte leftDig; 
+byte rightDig;
+
+
+//byte mapping for the 7-segments led display.
+ const byte digit[] =
+{
+B00111111, // 0
+B00110000, // 1
+B01011011, // 2
+B01111001, // 3
+B01110100, // 4
+B01101101, // 5
+B01101111, // 6
+B00111000, // 7
+B01111111, // 8
+B01111101, // 9
+B00000000, // BLANK
+B10000000  }; //dot
+
+
+//----SETUPS--------------------------------------
+void setup() {
+
+// set D2-D9 as outputs 
+// anodes (+) for the LED display
+for (byte x=2; x<10; x++){ 
+pinMode (x, OUTPUT);
+}  
+
+// set A0-A3 as outputs (A0=14 in arduino pin number)
+// cathodes (-) for the LED display
+for (byte x=14; x<18; x++){  
+pinMode (x, OUTPUT);
+}  
+  
+}
+
+void loop() {
+
+// print a testing number: 1234: 
+leftDig=12;
+rightDig=34;
+
+// This converts 2 digits to 4.
+// 1st.12/10=1; 2nd.12%10=2; 3rd. 34/10=3; 4th. 34%10=4;         
+dg1=digit[leftDig/10];
+dg2=digit[leftDig%10];
+dg3=digit[rightDig/10];
+dg4=digit[rightDig%10];
+
+ 
+// LED display code 
+// Only 1 led digit is turned on at any moment of the time, 
+// but because they are swtiching ON/OFF very quickly (1 millisecond for each digit)
+// You have the illustration that they are all on all the time.
+// This is called Multiplexing
+  
+disTimera=millis();
+if(disTimera-disTimerb>=1){
+  
+disCounter++;
+if(disCounter==5)disCounter=0;
+
+disTimerb=disTimera;
+
+if(disCounter==0){
+  digitalWrite(A3, HIGH);  
+  for(byte x=2; x<9; x++){
+  digitalWrite(x, LOW);
+  } 
+  
+  for(byte dr=0; dr<8; dr++){
+  digitalWrite(dr+2, bitRead(dg4,dr));  
+  }
+  digitalWrite(A0, LOW);  
+}
+
+if(disCounter==1){
+ 
+  digitalWrite(A0, HIGH);   
+  for(byte x=2; x<9; x++){
+  digitalWrite(x, LOW);
+  } 
+  
+  for(byte dr=0; dr<8; dr++){
+  digitalWrite(dr+2, bitRead(dg3,dr));
+  }  
+  digitalWrite(A1, LOW);   
+}
+
+if(disCounter==2){
+
+  digitalWrite(A1, HIGH); 
+  for(byte x=2; x<9; x++){
+  digitalWrite(x, LOW);
+  } 
+
+  for(byte dr=0; dr<8; dr++){
+  digitalWrite(dr+2, bitRead(dg2,dr));
+  }  
+  digitalWrite(A2, LOW);  
+}
+
+if(disCounter==3){
+  
+  digitalWrite(A2, HIGH); 
+  for(byte x=2; x<9; x++){
+  digitalWrite(x, LOW);
+  } 
+
+  for(byte dr=0; dr<8; dr++){
+  digitalWrite(dr+2, bitRead(dg1,dr));
+  }  
+  digitalWrite(A3, LOW);   
+}
+
+
+}
+
+}
