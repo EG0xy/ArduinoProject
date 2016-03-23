@@ -13,7 +13,7 @@
 // ===================================
 // 7-segment LED display example code
 // This sketch uses 1,126 bytes (13%) of program storage space. Maximum is 8,192 bytes.
-// But there are many techniques to lower the memory usage. see other example.
+// But there are many techniques to lower the memory usage. see 7-seg LED display_code_B.
 
 // These variables are used for multiflexing the LED display.
 byte disCounter=0;
