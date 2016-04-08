@@ -1,0 +1,103 @@
+// Juno Enthusiast
+//A7-buttonA(0*Vcc)-buttonB(1/2*Vcc)-buttonC(2/3*Vcc)-buttonC(3/4*Vcc)
+//8 leds 0-7 or PD0-PD7
+// Fuse for Atmega8: (8mhz LOW:E4 HIGH:D9) (16mhz external LOW:E0 HIGH:D9)
+// Go here for different fuse seting of your own: http://www.engbedded.com/fusecalc/
+
+// This is a simple LED and button example
+// PORTD == pin output states (it's a 1 byte or 8 bit register from AVR)
+// portd=0b00000001; // this will set pd0 or digital pin 0 HIGH or ENable pull-up resistor if DDRD is LOW
+// portd=0b11111111; // this will set pd0-pd7 or digital pin 0-7 HIGH or ENable pull-up resistor if DDRD is LOW
+//
+//DDRD == set input or output pin (default is 0 or input)
+//ddrd=0b00000001; // this will set pd0 or digital pin 0 as output and the rest as input
+//ddrd=0b11111111; // this will set pd0-pd7 or digital pin 0-7 as output
+
+const int timer=50;
+int bs;
+int ps=1023; 
+
+int tb; 
+byte tcd = 50;
+
+int reading;
+
+int tenbit=1023;
+
+void setup() {
+PORTD=0b00000000;
+DDRD=0b00000000;
+
+for(byte c=0; c<8; c++){
+PORTD= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTD= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=0; c<8; c++){
+PORTD|= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTD^= 1<<c;
+_delay_ms(timer);
+}
+
+DDRD=0b11111111;
+
+
+for(byte c=0; c<8; c++){
+PORTD= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTD= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=0; c<8; c++){
+PORTD|= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTD^= 1<<c;
+_delay_ms(timer);
+}  
+
+DDRD=0b11111111; 
+PORTD=0b00000000;
+
+}
+
+void loop() {
+  
+reading = analogRead(A3);  
+
+ 
+  if (reading != ps) {
+    tb = millis();
+  }
+
+  if ((millis() - tb) > tcd) { //1023
+
+    if (reading != bs) {
+      bs = reading;
+
+      if (bs == 0)   {PORTD=0b00000011;}                                   // 1 button when it reads 0 of VCC(1023)   
+      if (bs < (tenbit/2+3) && bs > (tenbit/2-3)) {PORTD=0b00001100;}      // 2 button when it reads 1/2 of VCC(1023)   
+      if (bs < (tenbit*2/3+5) && bs > (tenbit*2/3-5)) {PORTD=0b00110000;}  // 3 button when it reads 2/3 of VCC(1023)   
+      if (bs < (tenbit*3/4+5) && bs > (tenbit*3/4-5)) {PORTD=0b11000000;}  // 4 button when it reads 3/4 of VCC(1023)    
+      
+    }
+  }
+
+ps = reading;
+
+}
