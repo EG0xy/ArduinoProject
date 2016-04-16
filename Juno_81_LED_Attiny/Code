@@ -1,0 +1,137 @@
+// Attiny85 - CD4017 Time machine
+// 1 pin controls 81 led.
+// how does it works?
+// 2x CD4017, The 10 outputs decade counters combines together in a matrx forming a 9x9=81 outputs.
+// Give a LOW/HIGH clock signal, it will move to the next output or LED. A>B, B>C and etc.
+// By giving it a very fast timed signal, you can have full control of these leds.
+// It's like multiplexing those 4 digit 7-segmenet LED display, but a little complicated.
+// cycle0=led1/sec1; 
+//cycle59=led60/60sec; 
+//cycle60=led61/1 hr;
+//cycle71=led72/12 hr;
+
+#include "ClickButton.h" // button library
+ClickButton br(3, LOW, CLICKBTN_PULLUP);
+ClickButton bl(4, LOW, CLICKBTN_PULLUP); 
+
+int ta,tb,tc,td,te,tf; //2 time counters
+
+boolean led=0;
+byte cycle=0; // 81 leds= 81 cycles 0-80; 81=0;
+byte duration=0; // To turn one a led in cycle, longer timing or duration is needed. 
+int tx=1; //ie, to turn on led 10. cycle 10 of 1/81 needs to set to tx=100ns, while the rest of cycles 80/81 to tx=1ns.
+int ty=1;
+
+byte tmsec, blink, flash;
+byte tsec=30;
+byte thr=1;
+byte tmin=1;
+
+byte mode=0;
+
+boolean startup=1;
+
+//------------------------------------------------------------------------
+
+void setup() {
+pinMode (2, OUTPUT); //one pin from attiny85
+
+br.multiclickTime = 40;
+bl.multiclickTime = 40; 
+br.debounceTime = 30;
+bl.debounceTime = 30; 
+
+while(startup){
+  br.Update();
+  bl.Update(); 
+      
+  te=micros();
+  if(te-tf>=ty){
+   blink=!blink;
+  if(blink==1){cycle++;}
+  if(cycle==81){cycle=0;duration++;} 
+  if(duration>=10){ duration=0; flash=!flash;}  
+  if(cycle==80 && flash==1){ty=1000;}  
+  else ty=50;
+  tf=te;
+  }
+  digitalWrite(2,blink);
+ 
+   if(bl.clicks==1){cycle++;}      
+   if(br.clicks==1){cycle--;}   
+   if(br.clicks==-1){startup=0; duration=0;blink=0; flash=0;}    
+ 
+}
+
+}
+
+void loop() {
+  br.Update();
+  bl.Update(); 
+  
+
+   if(bl.clicks==-1){mode++;}   
+   if(br.clicks==-1){mode=0;}   
+   
+  if(mode==0){     
+ } 
+ 
+  if(mode==1){
+  if(bl.clicks==1){tmin--;}      
+  if(br.clicks==1){tmin++;}      
+ } 
+
+  if(mode==2){
+  if(bl.clicks==1){thr--;}     
+  if(br.clicks==1){thr++;}      
+ }  
+ 
+  if(mode==3){ mode=0; }   
+ 
+
+
+  ta=micros();
+  if(ta-tb>=tx){
+  led=!led;
+  if(led==1){cycle++;}
+  if(cycle==81){cycle=0;duration++;}
+  if(duration>=20){ duration=0;}
+
+  //72-79 green led;
+  
+  if(mode==0){
+  if(cycle== tsec-1 || (cycle== tmin-1 && blink==1) || (cycle== thr+59 && blink==1) || (cycle==80) ){tx=1000;}
+  else tx=1;    
+   }
+   
+  if(mode==1){
+  if( cycle== tmin-1 && blink==1){tx=1000;}
+  else tx=1;
+   }  
+   
+  if(mode==2){
+  if (cycle== thr+59 && blink==1) {tx=1000;}
+  else tx=1;
+   }     
+
+    tb=ta;
+  }  
+  
+   digitalWrite(2,led);// send out the signal
+  
+  tc=millis();
+  if(tc-td>=100){
+   blink=!blink;
+   tmsec++;
+  td=tc;
+  }
+  
+  if(tmsec==10){tsec++; tmsec=0; flash=!flash;}
+  if(tsec==61){tmin++; tsec=1;}  
+  if(tmin==61){thr++; tmin=1;}   
+  if(thr==13){thr=1;} 
+  
+   if(tmin==0){ tmin=60;}    
+   if(thr==0){ thr=12; }   
+  
+}
