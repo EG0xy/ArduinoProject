@@ -1,10 +1,7 @@
 // Attiny85 - CD4017 Time machine
 // 1 pin controls 81 led.
 // how does it works?
-// 2x CD4017, The 10 outputs decade counters combines together in a matrx forming a 9x9=81 outputs.
-// Give a LOW/HIGH clock signal, it will move to the next output or LED. A>B, B>C and etc.
-// By giving it a very fast timed signal, you can have full control of these leds.
-// It's like multiplexing those 4 digit 7-segmenet LED display, but a little complicated.
+//The CD4017 is a decade counter. Given a clock input, it switches its 10 outputs to logic HIGH one by one, commonly used in a LED chaser circuit. With 2 x CD4017, we can form a x and y axis matrix of 9 by 9, or 81 output, or in this case 81 led. Given a LOW/HIGH clock signal, the led will light up one by one. Only one led will be on at any given time, but if you give it a very fast signal clock, ie, 1khz (1000 times in a second), then all led will have a chance to turn itself on equally in that 1 second, thus having the illustration of being all on at the same time. (1000/81=125 times) The interesting thing is that you can have full control of these led by giving it a timed high frequency clock signal. Instead of having each led turning itself on equally for 125 times in 1 second, we can decide which led got to turn on more in a second by increasing this timing clock -- it's kinda like PWM -- using an attiny85 MCU, a programmable Integrated circuit.
 // cycle0=led1/sec1; 
 //cycle59=led60/60sec; 
 //cycle60=led61/1 hr;
