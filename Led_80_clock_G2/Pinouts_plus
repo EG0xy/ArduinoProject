@@ -1,0 +1,42 @@
+/* 2016-Apr-20
+
+74HC595 (8 outputs, controlled by 10 bytes) 
+latch= 13; 
+clock= 12; 
+data= 11; 
+
+1302 (RTC)
+Rst= A3
+I/0= A4
+Sclk= A5
+
+10 LED multiplexing outputs= 1-10 (Active LOW, ie HIGH means OFF)
+3 buttons= A0,A1,A2
+1 led=0 (RX pin)
+
+Mapping for 80 LED: 
+Minute/second: 60=59s, 1=60s, 2=1s; 
+Hour: 72=11h, 61=12h, 62=1h; 
+HalfDay=80, am/pm
+DOW:73=day1, 79=day7; 
+
+10 bytes for 74HC595
+ 1   (1,11,21,31,41,51,61,71)  
+ 2   (2,12,22,32,42,52,62,72)  
+ 3   (3,13,23,33,43,53,63,73)
+ 4   (4,14,24,34,44,54,64,74)
+ 5   (5,15,25,35,45,55,65,75)
+ 6   (6,16,26,36,46,56,66,76)
+ 7   (7,17,27,37,47,57,67,77)
+ 8   (8,18,28,38,48,58,68,78)
+ 9   (9,19,29,39,49,59,69,79)
+ 10  (10,20,30,40,50,60,70,80)
+ 
+Clock timing values (The clock doesn't have 0 value. 1-12)
+12-1-2-3-4-5-6-7-8-9-10-11 AM (internally - Atmega8)
+12-1-2-3-4-5-6-7-8-9-10-11 PM
+
+00-01-02-03-04-05-06-07-08-09-10-11 AM (externally - DS1302)
+12-13-14-15-16-17-18-19-20-21-22-23 PM 
+ 
+*/
