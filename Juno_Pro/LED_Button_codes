@@ -1,0 +1,104 @@
+//portc 0-7 >>> 8 led
+//PC7 >>A7 >>> 3 buttons
+
+int scount=0;
+int total=0;
+
+const int timer=50;
+int bs;
+int ps=1023; 
+
+int tb; 
+byte tcd = 50;
+
+int reading;
+
+int tenbit=1023;
+
+int count;
+void setup() {
+
+  
+PORTC=0b00000000;
+DDRC=0b00000000;
+
+for(byte c=0; c<8; c++){
+PORTC= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTC= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=0; c<8; c++){
+PORTC|= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTC^= 1<<c;
+_delay_ms(timer);
+}
+
+DDRC=0b11111111;
+
+
+for(byte c=0; c<8; c++){
+PORTC= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTC= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=0; c<8; c++){
+PORTC|= 1<<c;
+_delay_ms(timer);
+}
+
+for(byte c=7; c>0; c--){
+PORTC^= 1<<c;
+_delay_ms(timer);
+}  
+
+DDRC=0b11111111; 
+PORTC=0b00000000;
+
+}
+
+void loop() {
+  
+  
+int button = analogRead(A7);  
+
+total=total+button;
+scount++;
+if(scount>=100){
+scount=0;
+button=0;
+reading= total/100;
+}
+ 
+  if (reading != ps) {
+    tb = millis();
+    
+  }
+
+  if ((millis() - tb) > tcd) { //1023
+
+    if (reading != bs) {
+      bs = reading;
+      delay(1);
+      if (bs == 0)   {PORTC=0b00000111;}
+      if (bs < ((tenbit/2)+3) && bs > ((tenbit/2)-3)) {PORTC=0b00111000;}      
+      if (bs == 682) {PORTC=0b11100000;}                  
+    }
+  }
+
+ps = reading;
+
+}
