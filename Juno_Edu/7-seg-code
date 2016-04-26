@@ -1,0 +1,98 @@
+/*
+Port B is 8 anodes for the 7 segemnt + dot display
+last 4 bits from Port D is 4 cathode for the LED display.
+
+The LED works using a techinque called multiplexing.
+1st number
+1, All 4 cathodes are switched HIGH/OFF
+2, Some 8 anodes are switched HIGH/ON for the number. ie, for 8 => B01101111
+3, First cathodes is switched LOW/ON. 
+2nd number
+1, All 4 cathodes are switched HIGH/OFF
+2, Some 8 anodes are switched HIGH/ON for the number. ie, for 8 => B01101111
+3, Second cathodes is switched LOW/ON. 
+3rd number
+1, All 4 cathodes are switched HIGH/OFF
+2, Some 8 anodes are switched HIGH/ON for the number. ie, for 8 => B01101111
+3, third cathodes is switched LOW/ON. 
+4th number
+1, All 4 cathodes are switched HIGH/OFF
+2, Some 8 anodes are switched HIGH/ON for the number. ie, for 8 => B01101111
+3, Fourth cathodes is switched LOW/ON. 
+
+*/
+
+
+int ta,tb;
+byte mcount=0;
+byte do1,do2,do3,do4; // 4 bytes to hold 4x sigle number
+byte left, right; // 2 bytes to hold 2x 2 digits numbers.
+
+   const byte digit[] = //digit mapping
+    {
+   //HGFEDCBA  
+    B00111111, // 0
+    B00000110, // 1
+    B01011011, // 2
+    B01001111, // 3
+    B01100110, // 4
+    B01101101, // 5
+    B01111101, // 6
+    B00000111, // 7
+    B01111111, // 8
+    B01101111, // 9
+    B00000000, // BLANK
+    B10000000  }; //dot
+    
+    
+void setup() {
+  DDRB=0b11111111;  // set PortB and half PortD as output.
+  DDRD=0b11110000;
+}
+
+void loop() {
+  
+left=12;
+right=34;
+ 
+do1= digit[left/10];
+do2= digit[left%10];
+do3= digit[right/10];
+do4= digit[right%10];   
+  
+//----------------------display codes    
+
+  ta=micros();
+  if(ta-tb>=100){
+  mcount++;
+  if(mcount==4) mcount=0;
+    
+    if(mcount==0){
+    PORTD|=0b11110000; 
+    PORTB=do1;
+    PORTD^=0b00010000;   
+    }
+    
+    if(mcount==1){
+    PORTD|=0b11110000; 
+    PORTB=do2;
+    PORTD^=0b00100000; 
+    }
+
+    if(mcount==2){
+    PORTD|=0b11110000; 
+    PORTB=do3;
+    PORTD^=0b01000000;   
+    }
+
+    if(mcount==3){
+    PORTD|=0b11110000; 
+    PORTB=do4;
+    PORTD^=0b10000000;  
+    }    
+    
+    
+  tb=ta;
+  }
+
+}
