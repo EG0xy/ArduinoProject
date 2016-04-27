@@ -1,0 +1,71 @@
+/* 1 ADC pin many buttons code example
+
+Theory:
+The ADC is like a voltage meter with 1024 steps.
+Using a voltage divider and buttons to complete the circuit.
+technically up to 1000 buttons could be attached to 1 ADC pin.
+
+Example: 1 ADC pins 3 buttons (5 butons codes works with 3 buttons setup)
+Circuit: 5v-R1-(a)-R2-(b)-R3-(c) [Resistors are of same values.]
+a is connected to an ADC pin and ground via a (1st) button.
+b is connected to ground via a (2nd) button.
+c is connected to ground via a (3rd)button.
+
+When
+No button press: ADC is connected to 5V, thus it reads 1023;
+Button A press: ADC is connected to the ground, thus it reads 0;
+Button B press: ADC is connected to between R1 and R2. Forming a voltage divider, it reads 1/2 of 5V, or 511;
+Button C press: ADC is connected to between R1 and R2+R3. Forming a voltage divider, it reads 2/3 of 5V, or 682;
+*/
+
+
+boolean ledState=1;
+byte ledpin=9;
+
+int adc;
+byte bReads;
+byte PSbuttonState=0;
+byte buttonState;
+
+int tnow, tpast;
+
+void setup() {
+pinMode(ledpin, OUTPUT);
+}
+
+void loop() {
+  
+  digitalWrite(ledpin, ledState);
+  
+  adc=analogRead(A7);
+  
+// 1013-1023(No press); 0-10; 505-517 ; 674-688; 761-773; 812-824; ;  
+// 
+ 
+  if(adc>=1013) bReads=0;
+  if(adc<=10) bReads=1; 
+  if(adc>=505 && adc<=517) bReads=2;
+  if(adc>=674 && adc<=688) bReads=3;
+  if(adc>=761 && adc<=773) bReads=4;
+  if(adc>=812 && adc<=824) bReads=5;  
+  
+   if(bReads!=PSbuttonState){
+   tpast=millis();
+   }
+  
+  tnow=millis();
+  if(tnow-tpast>50){
+  if(bReads!=buttonState){
+    buttonState=bReads;
+    if(buttonState==0); // no button press
+    if(buttonState==1) ledState=!ledState;
+    if(buttonState==2) ledState=!ledState;
+    if(buttonState==3) ledState=!ledState; 
+    if(buttonState==4) ledState=!ledState;  
+    if(buttonState==5) ledState=!ledState;       
+  }    
+  }
+  
+    PSbuttonState=bReads;
+  
+}
