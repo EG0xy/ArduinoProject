@@ -2,7 +2,7 @@ menu.cpu=CPU
 
 ###############################################################
 
-attiny.name=〖Juno Tiny85〗
+attiny.name=〖Tiny85+〗
 attiny.bootloader.tool=arduino:avrdude
 attiny.bootloader.unlock_bits=0xff
 attiny.bootloader.lock_bits=0xff
@@ -12,7 +12,7 @@ attiny.upload.tool=arduino:avrdude
 
 ###############################################################
 
-attiny.menu.cpu.attiny85_8m=【ATtiny85 - 8MHz】
+attiny.menu.cpu.attiny85_8m=【ATtiny85 - 8Mhz】
 attiny.menu.cpu.attiny85_8m.upload.maximum_size=8192
 attiny.menu.cpu.attiny85_8m.build.mcu=attiny85
 attiny.menu.cpu.attiny85_8m.build.variant=tiny8
@@ -23,7 +23,7 @@ attiny.menu.cpu.attiny85_8m.build.f_cpu=8000000L
 
 ###############################################################
 
-attiny.menu.cpu.attiny85_1m=【ATtiny85 - 1MHz】
+attiny.menu.cpu.attiny85_1m=【ATtiny85 - 1Mhz】
 attiny.menu.cpu.attiny85_1m.upload.maximum_size=8192
 attiny.menu.cpu.attiny85_1m.build.mcu=attiny85
 attiny.menu.cpu.attiny85_1m.build.variant=tiny8
@@ -34,7 +34,55 @@ attiny.menu.cpu.attiny85_1m.build.f_cpu=1000000L
 
 ###############################################################
 
-attiny.menu.cpu.attiny44_8mhz=【ATtiny44 - 8 MHz】
+attiny.menu.cpu.attiny45_8mhz=【ATtiny44 - 8 Mhz】
+attiny.menu.cpu.attiny45_8mhz.upload.maximum_size=4096
+attiny.menu.cpu.attiny45_8mhz.build.mcu=attiny44
+attiny.menu.cpu.attiny45_8mhz.build.variant=tiny8
+attiny.menu.cpu.attiny45_8mhz.bootloader.low_fuses=0xe2
+attiny.menu.cpu.attiny45_8mhz.bootloader.high_fuses=0xdf
+attiny.menu.cpu.attiny45_8mhz.bootloader.extended_fuses=0xff
+attiny.menu.cpu.attiny45_8mhz.build.f_cpu=8000000L
+
+###############################################################
+
+attiny.menu.cpu.attiny45_1mhz=【ATtiny44 - 1 Mhz】
+attiny.menu.cpu.attiny45_1mhz.upload.maximum_size=4096
+attiny.menu.cpu.attiny45_1mhz.build.mcu=attiny44
+attiny.menu.cpu.attiny45_1mhz.build.variant=tiny8
+attiny.menu.cpu.attiny45_1mhz.bootloader.low_fuses=0x62
+attiny.menu.cpu.attiny45_1mhz.bootloader.high_fuses=0xdf
+attiny.menu.cpu.attiny45_1mhz.bootloader.extended_fuses=0xff
+attiny.menu.cpu.attiny45_1mhz.build.f_cpu=1000000L
+
+###############################################################
+###############################################################
+
+###############################################################
+###############################################################
+
+attiny.menu.cpu.attiny84_8mhz=【ATtiny84 - 8 Mhz】
+attiny.menu.cpu.attiny84_8mhz.upload.maximum_size=8192
+attiny.menu.cpu.attiny84_8mhz.build.mcu=attiny84
+attiny.menu.cpu.attiny84_8mhz.build.variant=tiny14
+attiny.menu.cpu.attiny84_8mhz.bootloader.low_fuses=0xe2
+attiny.menu.cpu.attiny84_8mhz.bootloader.high_fuses=0xdf
+attiny.menu.cpu.attiny84_8mhz.bootloader.extended_fuses=0xff
+attiny.menu.cpu.attiny84_8mhz.build.f_cpu=8000000L
+
+###############################################################
+
+attiny.menu.cpu.attiny84_1mhz=【ATtiny84 - 1 Mhz】
+attiny.menu.cpu.attiny84_1mhz.upload.maximum_size=8192
+attiny.menu.cpu.attiny84_1mhz.build.mcu=attiny84
+attiny.menu.cpu.attiny84_1mhz.build.variant=tiny14
+attiny.menu.cpu.attiny84_1mhz.bootloader.low_fuses=0x62
+attiny.menu.cpu.attiny84_1mhz.bootloader.high_fuses=0xdf
+attiny.menu.cpu.attiny84_1mhz.bootloader.extended_fuses=0xff
+attiny.menu.cpu.attiny84_1mhz.build.f_cpu=1000000L
+
+###############################################################
+
+attiny.menu.cpu.attiny44_8mhz=【ATtiny44 - 8 Mhz】
 attiny.menu.cpu.attiny44_8mhz.upload.maximum_size=4096
 attiny.menu.cpu.attiny44_8mhz.build.mcu=attiny44
 attiny.menu.cpu.attiny44_8mhz.build.variant=tiny14
@@ -45,7 +93,7 @@ attiny.menu.cpu.attiny44_8mhz.build.f_cpu=8000000L
 
 ###############################################################
 
-attiny.menu.cpu.attiny44_1mhz=【ATtiny44 - 1 MHz】
+attiny.menu.cpu.attiny44_1mhz=【ATtiny44 - 1 Mhz】
 attiny.menu.cpu.attiny44_1mhz.upload.maximum_size=4096
 attiny.menu.cpu.attiny44_1mhz.build.mcu=attiny44
 attiny.menu.cpu.attiny44_1mhz.build.variant=tiny14

@@ -2,7 +2,7 @@ menu.cpu=CPU
 
 ###############################################################
 
-Atmega128.name=〖Juno Xmega〗
+Atmega128.name=〖Xmega Pro〗
 Atmega128.upload.tool=avrdude
 Atmega128.upload.protocol=arduino
 Atmega128.bootloader.tool=avrdude
@@ -10,8 +10,7 @@ Atmega128.bootloader.unlock_bits=0x3f
 Atmega128.bootloader.lock_bits=0x0f
 Atmega128.build.variant=standard
 Atmega128.build.core=MegaCore
-Atmega128.build.mcu=atmega128
-Atmega128.build.board=AVR_ATmega128
+Atmega128.build.board=AVR_Pro
 
 ###############################################################
 
@@ -22,20 +21,23 @@ Atmega128.menu.cpu.8MHz_internal.bootloader.high_fuses=0xde
 Atmega128.menu.cpu.8MHz_internal.bootloader.extended_fuses=0xff
 Atmega128.menu.cpu.8MHz_internal.bootloader.file=optiboot/atmega128/optiboot_atmega128_8MHz.hex
 Atmega128.menu.cpu.8MHz_internal.build.f_cpu=8000000L
+Atmega128.menu.cpu.8MHz_internal.build.mcu=atmega128
 Atmega128.menu.cpu.8MHz_internal.upload.tool=avrdude
 Atmega128.menu.cpu.8MHz_internal.upload.protocol=arduino
 Atmega128.menu.cpu.8MHz_internal.upload.maximum_size=130048
 Atmega128.menu.cpu.8MHz_internal.upload.maximum_data_size=4096
 
+
 ###############################################################
 
 Atmega128.menu.cpu.1MHz_internal=【Atmega128 - 1Mhz】
-Atmega128.menu.cpu.1MHz_internal.upload.speed=9600
+Atmega128.menu.cpu.1MHz_internal.upload.speed=19200
 Atmega128.menu.cpu.1MHz_internal.bootloader.low_fuses=0xa1
 Atmega128.menu.cpu.1MHz_internal.bootloader.high_fuses=0xde
 Atmega128.menu.cpu.1MHz_internal.bootloader.extended_fuses=0xff
 Atmega128.menu.cpu.1MHz_internal.bootloader.file=optiboot/atmega128/optiboot_atmega128_1MHz.hex
 Atmega128.menu.cpu.1MHz_internal.build.f_cpu=1000000L
+Atmega128.menu.cpu.1MHz_internal.build.mcu=atmega128
 Atmega128.menu.cpu.1MHz_internal.upload.tool=avrdude
 Atmega128.menu.cpu.1MHz_internal.upload.protocol=arduino
 Atmega128.menu.cpu.1MHz_internal.upload.maximum_size=130048
@@ -50,7 +52,7 @@ Atmega128.menu.cpu.16MHz_external.bootloader.high_fuses=0xce
 Atmega128.menu.cpu.16MHz_external.bootloader.extended_fuses=0xff
 Atmega128.menu.cpu.16MHz_external.bootloader.file=optiboot/atmega128/optiboot_atmega128_16MHz.hex
 Atmega128.menu.cpu.16MHz_external.build.f_cpu=16000000L
-
+Atmega128.menu.cpu.16MHz_external.build.mcu=atmega128
 Atmega128.menu.cpu.16MHz_external.upload.tool=avrdude
 Atmega128.menu.cpu.16MHz_external.upload.protocol=arduino
 Atmega128.menu.cpu.16MHz_external.upload.maximum_size=130048
@@ -70,6 +72,7 @@ Atmega128.menu.cpu.64a_8MHz_internal.bootloader.high_fuses=0xde
 Atmega128.menu.cpu.64a_8MHz_internal.bootloader.extended_fuses=0xff
 Atmega128.menu.cpu.64a_8MHz_internal.bootloader.file=optiboot/atmega64/optiboot_atmega64_8MHz.hex
 Atmega128.menu.cpu.64a_8MHz_internal.build.f_cpu=8000000L
+Atmega128.menu.cpu.64a_8MHz_internal.build.mcu=atmega64
 Atmega128.menu.cpu.64a_8MHz_internal.upload.tool=avrdude
 Atmega128.menu.cpu.64a_8MHz_internal.upload.protocol=arduino
 Atmega128.menu.cpu.64a_8MHz_internal.upload.maximum_size=64512
@@ -78,12 +81,13 @@ Atmega128.menu.cpu.64a_8MHz_internal.upload.maximum_data_size=4096
 ###############################################################
 
 Atmega128.menu.cpu.64a_1MHz_internal=【Atmega64 - 1Mhz】
-Atmega128.menu.cpu.64a_1MHz_internal.upload.speed=9600
+Atmega128.menu.cpu.64a_1MHz_internal.upload.speed=19200
 Atmega128.menu.cpu.64a_1MHz_internal.bootloader.low_fuses=0xa1
 Atmega128.menu.cpu.64a_1MHz_internal.bootloader.high_fuses=0xde
 Atmega128.menu.cpu.64a_1MHz_internal.bootloader.extended_fuses=0xff
 Atmega128.menu.cpu.64a_1MHz_internal.bootloader.file=optiboot/atmega64/optiboot_atmega64_1MHz.hex
 Atmega128.menu.cpu.64a_1MHz_internal.build.f_cpu=1000000L
+Atmega128.menu.cpu.64a_1MHz_internal.build.mcu=atmega64
 Atmega128.menu.cpu.64a_1MHz_internal.upload.tool=avrdude
 Atmega128.menu.cpu.64a_1MHz_internal.upload.protocol=arduino
 Atmega128.menu.cpu.64a_1MHz_internal.upload.maximum_size=64512
@@ -98,7 +102,7 @@ Atmega128.menu.cpu.64a_16MHz_external.bootloader.high_fuses=0xce
 Atmega128.menu.cpu.64a_16MHz_external.bootloader.extended_fuses=0xff
 Atmega128.menu.cpu.64a_16MHz_external.bootloader.file=optiboot/atmega64/optiboot_atmega64_16MHz.hex
 Atmega128.menu.cpu.64a_16MHz_external.build.f_cpu=16000000L
-
+Atmega128.menu.cpu.64a_16MHz_external.build.mcu=atmega64
 Atmega128.menu.cpu.64a_16MHz_external.upload.tool=avrdude
 Atmega128.menu.cpu.64a_16MHz_external.upload.protocol=arduino
 Atmega128.menu.cpu.64a_16MHz_external.upload.maximum_size=64512

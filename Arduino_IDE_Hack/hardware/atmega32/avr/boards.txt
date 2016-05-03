@@ -2,7 +2,7 @@ menu.cpu=CPU
 
 ###############################################################
 
-Atmega32.name=〖Juno Atmega〗
+Atmega32.name=〖Atmega Edu〗
 Atmega32.upload.tool=avrdude
 Atmega32.upload.protocol=arduino
 Atmega32.bootloader.tool=avrdudeCustom
@@ -10,6 +10,7 @@ Atmega32.bootloader.unlock_bits=0x3f
 Atmega32.bootloader.lock_bits=0x0f
 Atmega32.build.core=MightyCore
 Atmega32.build.variant=standard
+Atmega32.build.board=AVR_Edu
 
 ###############################################################
 
@@ -21,20 +22,18 @@ Atmega32.menu.cpu.8MHz_32A_internal.bootloader.low_fuses=0xa4
 Atmega32.menu.cpu.8MHz_32A_internal.bootloader.high_fuses=0xde
 Atmega32.menu.cpu.8MHz_32A_internal.bootloader.file=optiboot/atmega32/optiboot_atmega32_8MHz.hex
 Atmega32.menu.cpu.8MHz_32A_internal.build.f_cpu=8000000L
-Atmega32.menu.cpu.8MHz_32A_internal.build.board=AVR_ATmega32
 Atmega32.menu.cpu.8MHz_32A_internal.build.mcu=atmega32
 
 ###############################################################
 
 Atmega32.menu.cpu.1MHz_32A_internal=【Atmega32 - 1Mhz】
-Atmega32.menu.cpu.1MHz_32A_internal.upload.speed=9600
+Atmega32.menu.cpu.1MHz_32A_internal.upload.speed=19200
 Atmega32.menu.cpu.1MHz_32A_internal.upload.maximum_size=32256
 Atmega32.menu.cpu.1MHz_32A_internal.upload.maximum_data_size=2048
 Atmega32.menu.cpu.1MHz_32A_internal.bootloader.low_fuses=0xa1
 Atmega32.menu.cpu.1MHz_32A_internal.bootloader.high_fuses=0xde
 Atmega32.menu.cpu.1MHz_32A_internal.bootloader.file=optiboot/atmega32/optiboot_atmega32_1MHz.hex
 Atmega32.menu.cpu.1MHz_32A_internal.build.f_cpu=1000000L
-Atmega32.menu.cpu.1MHz_32A_internal.build.board=AVR_ATmega32
 Atmega32.menu.cpu.1MHz_32A_internal.build.mcu=atmega32
 
 ###############################################################
@@ -47,7 +46,6 @@ Atmega32.menu.cpu.16MHz_32A_external.bootloader.low_fuses=0xbf
 Atmega32.menu.cpu.16MHz_32A_external.bootloader.high_fuses=0xde
 Atmega32.menu.cpu.16MHz_32A_external.bootloader.file=optiboot/atmega32/optiboot_atmega32_16MHz.hex
 Atmega32.menu.cpu.16MHz_32A_external.build.f_cpu=16000000L
-Atmega32.menu.cpu.16MHz_32A_external.build.board=AVR_ATmega32
 Atmega32.menu.cpu.16MHz_32A_external.build.mcu=atmega32
 
 ###############################################################
@@ -60,21 +58,19 @@ Atmega32.menu.cpu.8MHz_16A_internal.bootloader.low_fuses=0xa4
 Atmega32.menu.cpu.8MHz_16A_internal.bootloader.high_fuses=0xdc
 Atmega32.menu.cpu.8MHz_16A_internal.bootloader.file=optiboot/atmega16/optiboot_atmega16_8MHz.hex
 Atmega32.menu.cpu.8MHz_16A_internal.build.f_cpu=8000000L
-Atmega32.menu.cpu.8MHz_16A_internal.build.board=AVR_ATmega16
 Atmega32.menu.cpu.8MHz_16A_internal.build.mcu=atmega16
 
 
 ###############################################################
 
 Atmega32.menu.cpu.1MHz_16A_internal=【Atmega16 - 1Mhz】
-Atmega32.menu.cpu.1MHz_16A_internal.upload.speed=9600
+Atmega32.menu.cpu.1MHz_16A_internal.upload.speed=19200
 Atmega32.menu.cpu.1MHz_16A_internal.upload.maximum_size=15872
 Atmega32.menu.cpu.1MHz_16A_internal.upload.maximum_data_size=1024
 Atmega32.menu.cpu.1MHz_16A_internal.bootloader.low_fuses=0xa1
 Atmega32.menu.cpu.1MHz_16A_internal.bootloader.high_fuses=0xdc
 Atmega32.menu.cpu.1MHz_16A_internal.bootloader.file=optiboot/atmega16/optiboot_atmega16_1MHz.hex
 Atmega32.menu.cpu.1MHz_16A_internal.build.f_cpu=1000000L
-Atmega32.menu.cpu.1MHz_16A_internal.build.board=AVR_ATmega16
 Atmega32.menu.cpu.1MHz_16A_internal.build.mcu=atmega16
 
 ###############################################################
@@ -87,7 +83,6 @@ Atmega32.menu.cpu.16MHz_16A_external.bootloader.low_fuses=0xbf
 Atmega32.menu.cpu.16MHz_16A_external.bootloader.high_fuses=0xdc
 Atmega32.menu.cpu.16MHz_16A_external.bootloader.file=optiboot/atmega16/optiboot_atmega16_16MHz.hex
 Atmega32.menu.cpu.16MHz_16A_external.build.f_cpu=16000000L
-Atmega32.menu.cpu.16MHz_16A_external.build.board=AVR_ATmega16
 Atmega32.menu.cpu.16MHz_16A_external.build.mcu=atmega16
 
 ###############################################################

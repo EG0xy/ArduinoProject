@@ -2,7 +2,7 @@ menu.cpu=CPU
 
 ##############################################################
 
-juno.name=〖Juno AVR〗
+juno.name=〖Juno〗
 juno.upload.tool=avrdude
 juno.upload.protocol=arduino
 juno.bootloader.tool=avrdude
@@ -18,7 +18,7 @@ juno.menu.cpu.atmega8-8mhz=【Atmega8 - 8Mhz】
 
 juno.menu.cpu.atmega8-8mhz.upload.maximum_size=8192
 juno.menu.cpu.atmega8-8mhz.upload.maximum_data_size=512
-juno.menu.cpu.atmega8-8mhz.upload.speed=57600
+juno.menu.cpu.atmega8-8mhz.upload.speed=19200
 
 juno.menu.cpu.atmega8-8mhz.bootloader.low_fuses=0xe4
 juno.menu.cpu.atmega8-8mhz.bootloader.high_fuses=0xd9
@@ -48,7 +48,7 @@ juno.menu.cpu.atmega8-16mhz=【Atmega8 - 16Mhz Ext】
 
 juno.menu.cpu.atmega8-16mhz.upload.maximum_size=8192
 juno.menu.cpu.atmega8-16mhz.upload.maximum_data_size=512
-juno.menu.cpu.atmega8-16mhz.upload.speed=19200
+juno.menu.cpu.atmega8-16mhz.upload.speed=115200
 
 juno.menu.cpu.atmega8-16mhz.bootloader.low_fuses=0xFF
 juno.menu.cpu.atmega8-16mhz.bootloader.high_fuses=0xd9
@@ -83,7 +83,7 @@ juno.menu.cpu.ATmega328-1mhz=【Atmega328 - 1Mhz】
 
 juno.menu.cpu.ATmega328-1mhz.upload.maximum_size=30720
 juno.menu.cpu.ATmega328-1mhz.upload.maximum_data_size=2048
-juno.menu.cpu.ATmega328-1mhz.upload.speed=57600
+juno.menu.cpu.ATmega328-1mhz.upload.speed=19200
 
 juno.menu.cpu.ATmega328-1mhz.bootloader.low_fuses=0x62
 juno.menu.cpu.ATmega328-1mhz.bootloader.high_fuses=0xD9
@@ -99,11 +99,12 @@ juno.menu.cpu.ATmega328-16mhz=【Atmega328 - 16Mhz Ext】
 
 juno.menu.cpu.ATmega328-16mhz.upload.maximum_size=30720
 juno.menu.cpu.ATmega328-16mhz.upload.maximum_data_size=2048
-juno.menu.cpu.ATmega328-16mhz.upload.speed=57600
+juno.menu.cpu.ATmega328-16mhz.upload.speed=115200
 
 juno.menu.cpu.ATmega328-16mhz.bootloader.low_fuses=0xFF
 juno.menu.cpu.ATmega328-16mhz.bootloader.high_fuses=0xDA
-juno.menu.cpu.ATmega328-16mhz.bootloader.extended_fuses=0x05
+juno.menu.cpu.ATmega328-16mhz.bootloader.extended_fuses=
+
 juno.menu.cpu.ATmega328-16mhz.bootloader.file=optiboot/optiboot_atmega328.hex
 
 juno.menu.cpu.ATmega328-16mhz.build.mcu=atmega328p
