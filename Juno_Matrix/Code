@@ -1,0 +1,72 @@
+/*
+
+8x8 led matrix
++ 2,3,4,5,9,8,7,6
+- 10,11,12,13,14,15,16,17
+
+2 buttons: 0, 1 (Rx, Tx(LED))
+
+Atmega8 8mhz fuse: LOW:C4  HIGH:DA; lock fuse:CF
+ 
+ */
+
+#include <button.h>
+button left (0);
+button right (1);
+
+byte a[8]={2,3,4,5,9,8,7,6}; //row++ (matrix)
+byte c[8]={10,11,12,13,14,15,16,17}; // column-- (multiplexing)
+
+byte matrix[8];
+
+byte t1[8]={1,2,4,8,16,32,64,128};
+byte t2[8]={128,64,32,16,8,4,2,1};
+
+unsigned int ta,tb,tc,td;
+byte count,love;
+
+void setup() {
+  for(int i=0; i<8; i++){
+pinMode(a[i],OUTPUT );
+pinMode(c[i],OUTPUT );    
+    }
+
+}
+
+void loop() {
+left.buttonWatchbot();  
+right.buttonWatchbot();  
+
+if(left.br==1){  for(int j=0; j<8;j++) matrix[j]=t1[j];}
+if(right.br==1){ for(int j=0; j<8;j++) matrix[j]=t2[j];}
+
+tc=millis();
+if(tc-td>=50){
+  love++;
+  if(love==64)love=0;
+  td=tc;
+  }
+
+
+matrix[love/8]= matrix[love/8] ^ 1<<love%8;  
+
+
+ta=millis();
+if(ta-tb>1){
+  count++;
+  if(count==8){count=0;}
+
+  for(int i=0; i<8; i++){
+digitalWrite(c[i],HIGH );    
+    }
+
+  for(int i=0; i<8; i++){
+digitalWrite(a[i],(matrix[count] & 1<<i) );    
+    }    
+    
+  digitalWrite(c[count],LOW );  
+
+   tb=ta;
+  }
+
+}
