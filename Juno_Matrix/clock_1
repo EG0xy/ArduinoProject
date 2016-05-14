@@ -1,0 +1,178 @@
+/*
+
+8x8 led matrix
++ 2,3,4,5,9,8,7,6 --------
+- 10,11,12,13,14,15,16,17 ||||||||
+
+2 buttons: 0, 1 (Rx, Tx(LED))
+
+Atmega8 8mhz fuse: LOW:C4  HIGH:DA; lock fuse:CF
+ 
+ */
+
+#include <button.h>
+button left (0);
+button right (1);
+
+byte a[8]={2,3,4,5,9,8,7,6}; //row++ (matrix)
+byte c[8]={17,16,15,14,13,12,11,10}; // column-- (multiplexing)
+
+byte matrix[8];
+
+byte matrixA[8];
+byte matrixHR[8];
+byte matrixMIN[8];
+
+byte cm[8]={
+  0B01111110,
+  0B00111110,
+  0B00000000,
+  0B00000000,
+  0B00000000,
+  0B00000000,
+  0B00000000,
+  0B00000000        
+};
+
+
+unsigned int ta,tb,tc,td;
+byte count;
+
+byte tsec=1;
+byte tmin=1;
+byte thr=1;
+byte cc=1;
+byte tmd;
+byte mode=0;
+byte smode=0;
+
+void setup() {
+  for(int i=0; i<8; i++){
+pinMode(a[i],OUTPUT );
+pinMode(c[i],OUTPUT );    
+    }
+}
+
+void loop() {
+left.buttonWatchbot();  
+right.buttonWatchbot();  
+
+
+
+if(left.br==-1){ mode++; }
+if(right.br==1){}
+
+if(smode==0){
+  
+if(mode==0){
+if(left.br==1){}  
+if(right.br==1){ smode=!smode;}
+  
+      tmd=tmin; 
+for(int j=0; j<8;j++) {
+  matrix[j] = matrixMIN[j] | matrixHR[j] | cm[j]; 
+  matrix[j] ^=matrixA[j]; 
+}
+}
+
+if(mode==1){
+if(left.br==1){ thr--;}
+if(right.br==1){ thr++;}
+    tmd=tmin;  
+for(int j=0; j<8;j++) {
+  matrix[j] = matrixHR[j]; ; 
+}
+}
+
+if(mode==2){
+if(left.br==1){ tmin--;}
+if(right.br==1){ tmin++;}
+
+  tmd=tmin;  
+for(int j=0; j<8;j++) {
+  matrix[j] = matrixMIN[j]; 
+}
+}
+
+if(mode==3)mode=0;
+}
+
+else{
+if(left.br==1){ }
+if(right.br==1){ smode=!smode; }
+    tmd=tsec;
+for(int j=0; j<8;j++) {
+  matrix[j] = matrixMIN[j] | cm[j]; 
+}
+}
+
+
+//----
+
+tc=millis();
+if(tc-td>=1000){
+  tsec++;
+  cc++;
+  if(cc==12)cc=1;
+  td=tc;
+  }
+
+if(cc<7){matrixA[0]=1<<7-cc; matrixA[1]=0;}
+if(cc>6){matrixA[1]=1<<12-cc; matrixA[0]=0;}
+
+if(thr<9) {matrixHR[3]=1<<8-thr;matrixHR[4]=0;}
+if(thr==9){matrixHR[4]= 0B10000000;matrixHR[3]=0;}
+if(thr==10)matrixHR[4]=0B01000000;
+if(thr==11)matrixHR[4]=0B01100000;
+if(thr==12)matrixHR[4]=0B01010000;
+
+
+if(tmd==1){matrixMIN[5]=0B00000100; matrixMIN[6]=0;matrixMIN[7]=0;}
+if(tmd==2) matrixMIN[5]=0B00000010;
+if(tmd==3) matrixMIN[5]=0B00000001;
+if(tmd>3 && tmd<11) { matrixMIN[6]=1<<11-tmd;matrixMIN[5]=0;matrixMIN[7]=0; }
+if(tmd==11) matrixMIN[6]=0B00000011;
+if(tmd>11 && tmd<20) {matrixMIN[6]=0B00000010; matrixMIN[7]=1<<19-tmd;}
+if(tmd==20) {matrixMIN[5]=0B00000010; matrixMIN[6]=0B00000010;matrixMIN[7]=0;}
+if(tmd==21) {matrixMIN[5]=0B00000010; matrixMIN[6]=0B00000011;}
+if(tmd>21 && tmd<30) {matrixMIN[5]=0B00000010; matrixMIN[6]=0B00000010;matrixMIN[7]=1<<29-tmd;}
+if(tmd==30) {matrixMIN[5]=0B00000001; matrixMIN[6]=0B00000010;matrixMIN[7]=0;}
+if(tmd==31) {matrixMIN[5]=0B00000001; matrixMIN[6]=0B00000011;}
+if(tmd>31 && tmd<40) {matrixMIN[5]=0B00000001; matrixMIN[6]=0B00000010;matrixMIN[7]=1<<39-tmd;}
+if(tmd==40) {matrixMIN[5]=0B00000000; matrixMIN[6]=0B10000010;matrixMIN[7]=0;}
+if(tmd==41) { matrixMIN[6]=0B10000011;}
+if(tmd>41 && tmd<50){ matrixMIN[6]=0B10000010;matrixMIN[7]=1<<49-tmd;}
+if(tmd==50) { matrixMIN[6]=0B01000010;matrixMIN[7]=0;}
+if(tmd==51) { matrixMIN[6]=0B01000011;}
+if(tmd>51 && tmd<60){ matrixMIN[6]=0B01000010;matrixMIN[7]=1<<59-tmd;}
+if(tmd==60) { matrixMIN[6]=0B00100010;matrixMIN[7]=0; matrixMIN[5]=0;}
+
+
+
+ if(tsec==61){tmin++; tsec=1;}  
+ if(tmin==61){thr++; tmin=1;}   
+ if(thr==13){thr=1;} 
+  if(thr==0)thr=12; 
+  if(tmin==0)tmin=60;
+   
+//------------------------------
+
+ta=millis();
+if(ta-tb>1){
+  count++;
+  if(count==8){count=0;}
+
+  for(int i=0; i<8; i++){
+digitalWrite(a[i],LOW );    
+    }
+
+  for(int i=0; i<8; i++){
+digitalWrite(c[i],(!(matrix[count] & 1<<i)) );    
+    }    
+    
+  digitalWrite(a[count],HIGH );  
+
+   tb=ta;
+  }
+
+}
