@@ -1,0 +1,305 @@
+/*
+Juno Cell Clock 2032
+
+Fuse: A1 D9
+7-Seg
+8+ =0-7 ( portD)
+4- = 11, 12, 13, 17(A3)
+
+DS.1302
+sclk =8
+i/o=9
+en=10
+
+2 LED = 18, 19 (A4, A5)
+3 Buttons= 14, 15, 16 (A0, A1, A2)
+
+ds1302 chip hr range: 0-23; min range:0-59; sec range 0-59;
+
+*/
+
+
+#include <avr/sleep.h>
+#include <button.h>
+#include <DS1302.h>
+
+DS1302 rtc(10, 9, 8);
+Time t;
+
+button ba(A2); 
+button bb(A1); 
+button bc(A0); 
+
+   const byte digit[] = //digit mapping
+    {
+   //HGFEDCBA  
+    B00111111, // 0
+    B00000110, // 1
+    B01011011, // 2
+    B01001111, // 3
+    B01100110, // 4
+    B01101101, // 5
+    B01111101, // 6
+    B00000111, // 7
+    B01111111, // 8
+    B01101111, // 9
+    B00000000, // BLANK
+    B10000000  }; //dot
+
+  
+  /*  PortD
+  
+  |-A-|
+  F   B  
+  |-G-|
+  E   C
+  |-D-|
+  */
+    
+ //--------------------------------
+
+int ta,tb,tc,td;
+byte mcount=0;
+byte tmsec,tsec,tmin,thr,shr; 
+
+byte d1,d2,d3,d4;
+byte do1,do2,do3,do4;
+
+boolean sleep=0;
+boolean sleepnow=0;
+boolean autoSleep=1;
+byte countdown;
+boolean setime=0;
+
+boolean blink,flash;
+
+byte mode=0;
+boolean mmode=0;
+
+void setup() { 
+
+  rtc.halt(false);
+  t = rtc.getTime();
+   shr=t.hour+1; //0-23 >>> 1-12
+   tmin=t.min; 
+   tsec=t.sec; 
+   
+   if(shr>12){thr=shr-12;}
+   else thr=shr;
+  
+  
+  DDRD=0b11111111;  
+  DDRB=0b00111000;
+  DDRC=0b00111000;  
+
+}
+
+void loop() {
+ 
+
+
+if(autoSleep==1){sleepnow=1; digitalWrite(A4, LOW); digitalWrite(A5, blink);}  // EEPROM.write(0, 1); to turn on autosleep
+if(autoSleep==0){sleepnow=0; digitalWrite(A4, HIGH); digitalWrite(A5, LOW);}
+ba.buttonWatchbot();
+bb.buttonWatchbot();
+bc.buttonWatchbot();
+
+do1=digit[d1];
+do2=digit[d2]|B10000000;
+do3=digit[d3];
+do4=digit[d4];
+
+if(autoSleep==1){
+d1= thr/10;
+d2= thr%10;
+d3= tmin/10;
+d4= tmin%10;  
+if(ba.buttonRead==1) ;
+if(bb.buttonRead==1) ;
+if(bc.buttonRead==1) autoSleep=0;
+}
+
+
+if(autoSleep==0){
+  
+if(ba.buttonRead==1) mode++; 
+if(bc.buttonRead==-1) {autoSleep=1;}
+
+
+if(mode==0){
+if(bb.buttonRead==1) mmode=!mmode;  
+  if(mmode==0){
+d1= thr/10;
+d2= thr%10;
+d3= tmin/10;
+d4= tmin%10; }
+
+if(mmode==1){
+d1= tmin/10;
+d2= tmin%10;
+d3= tsec/10;
+d4= tsec%10;
+}
+}
+
+if(mode==1){
+  
+if(bb.buttonRead==1) thr--;
+if(bc.buttonRead==1) thr++;; 
+
+if(flash==1)
+{
+d1= thr/10;
+d2= thr%10;
+d3= 10;
+d4= 10; 
+}
+
+else
+{
+d1= 10;
+d2= 10;
+d3= 10;
+d4= 10; 
+}
+
+}
+
+if(mode==2){
+  
+if(bb.buttonRead==1) tmin--;
+if(bc.buttonRead==1) tmin++;; 
+
+if(flash==1){
+d1= 10;
+d2= 10;
+d3= tmin/10;
+d4= tmin%10; 
+}
+
+else{
+d1= 10;
+d2= 10;
+d3= 10;
+d4= 10; 
+}
+
+}
+
+if(mode>=3){
+ setime=1; 
+ mode=0;
+}
+
+}
+ 
+
+tc=millis();
+if(tc-td>=50){
+tmsec++;
+
+if(tmsec%20==0){
+tsec++;
+
+}
+
+if(tmsec%5==0){
+blink=!blink;
+}
+
+flash=!flash;
+if(sleepnow==1) {
+  if(countdown==10){sleep=1;}  //<<<<<<<<<<<count down timer. 10=1.0s
+  countdown++;
+ }
+
+td=tc;
+}
+
+if(tsec==60){tsec=0;}
+if(tmin==60){tmin=0;}
+if(tmin==255){ tmin=59;}
+
+if(thr==13){thr=1;}
+if(thr==0){ thr=12;}
+
+
+if(setime==1){  //-------------- set time code
+    rtc.halt(false);
+    rtc.writeProtect(false);  
+    rtc.setTime(thr-1, tmin, 0);  
+    autoSleep=1;
+    setime=0;
+}    
+    
+if(sleep==1){   //-------------- power down code
+
+
+    DDRB=B00000000;
+    DDRC=B00000000;  
+    DDRD=B00000000;  
+       
+    PORTB=B00000000;   
+    PORTC=B00000000;
+    PORTD=B00000000;
+    
+
+    
+ set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
+ sleep_enable();     
+ sleep_mode();     
+}    
+    
+//----------------------display codes    
+
+  ta=micros();
+  if(ta-tb>=100){
+  mcount++;
+  if(mcount==4) mcount=0;
+    
+    if(mcount==0){
+    PORTB|=0b00111000;
+    PORTC|=0b00001000;
+    
+    PORTD=do1;
+ 
+    PORTB^=0b00001000; //<<
+    PORTC^=0b00000000;    
+    }
+    
+    if(mcount==1){
+    PORTB|=0b00111000;
+    PORTC|=0b00001000;
+    
+    PORTD=do2;
+ 
+    PORTB ^=0b00010000; //<<
+    PORTC ^=0b00000000;    
+    }
+
+    if(mcount==2){
+    PORTB|=0b00111000;
+    PORTC|=0b00001000;
+    
+    PORTD=do3;
+ 
+    PORTB ^=0b00100000; //<<
+    PORTC ^=0b00000000;    
+    }
+
+    if(mcount==3){
+    PORTB|=0b00111000;
+    PORTC|=0b00001000;
+    
+    PORTD=do4;
+ 
+    PORTB^=0b00000000;//<<
+    PORTC^=0b00001000;    
+    }    
+    
+    
+  tb=ta;
+  }
+  
+
+}
