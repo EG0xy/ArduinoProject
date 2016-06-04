@@ -1,21 +1,21 @@
 
-  //---------blink led using timer and interrupt
+  //---------blink led using timer and interrupt -- Atmega128
   //-----------------------------------------------------------
 int main(void){
   
-SREG=1<<7;
-DDRC=0xff;
-ASSR= 1<<AS0;
-TCCR0 = 1<<CS02;
-TIMSK= 1<<TOIE0;
+SREG=1<<7; //enable gobal interrupt
+DDRC=0xff; //set PORT C as output, We only blink 1 led, but it will be fine.
+ASSR= 1<<AS0; // Enable Asynchronous Clock from external crystal TOSC1-TOSC2 (We are using 32.7Khz high accuracy Oscillator here)
+TCCR0 = 1<<CS02; // use 64 prescaler. why? 2x64=128; 128x256=32,768; 256 from 8-bit overFlow value; 32,768=32.7Khz
+TIMSK= 1<<TOIE0; // enable timer interrupt
 
-  while(1){
+  while(1){  // our main loop, which does nothing
 ;
     }
   }
 
 
-ISR(TIMER0_OVF_vect){
+ISR(TIMER0_OVF_vect){ // overflow interrupt for our 8-bit timer; toggle a led every second.
   PORTC ^= 1<<7;
   }
   
