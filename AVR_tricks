@@ -1,0 +1,25 @@
+
+  //---------blink led using timer and interrupt
+  //-----------------------------------------------------------
+int main(void){
+  
+SREG=1<<7;
+DDRC=0xff;
+ASSR= 1<<AS0;
+TCCR0 = 1<<CS02;
+TIMSK= 1<<TOIE0;
+
+  while(1){
+;
+    }
+  }
+
+
+ISR(TIMER0_OVF_vect){
+  PORTC ^= 1<<7;
+  }
+  
+  
+  //-----------------------------------------------------------
+
+  
