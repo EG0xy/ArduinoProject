@@ -1,0 +1,191 @@
+/* 2016 June.5.2016
+
+74HC595 (8 outputs, controlleds by 10 bytes) 
+latch= 13; 
+clock= 12; 
+data= 11; 
+
+1302 (RTC)
+Rst= A3
+I/0= A4
+Sclk= A5
+
+10 leds multiplexing outputs= D1-10 (Active LOW, ie HIGH means OFF)
+3 buttons= A0,A1,A2
+1 leds=0 (RX pin)
+
+Mapping for 80 leds: 
+Minute/second: 60=59s, 1=60s, 2=1s; 
+Hour: 72=11h, 61=12h, 62=1h; 
+HalfDay=80, am/pm
+DOW:73=day1, 79=day7; 
+ 
+10 bytes for 74HC595
+ 1   (1,11,21,31,41,51,61,71)  
+ 2   (2,12,22,32,42,52,62,72)  
+ 3   (3,13,23,33,43,53,63,73)
+ 4   (4,14,24,34,44,54,64,74)
+ 5   (5,15,25,35,45,55,65,75)
+ 6   (6,16,26,36,46,56,66,76)
+ 7   (7,17,27,37,47,57,67,77)
+ 8   (8,18,28,38,48,58,68,78)
+ 9   (9,19,29,39,49,59,69,79)
+ 10  (10,20,30,40,50,60,70,80)
+
+Clock timing ranges/values: 
+DS1302 range Hr: 0-23; Min: 0-59; Sec: 0-59; 
+Clock range: Hr: 1-12; Min/Sec: 1-60,
+
+12-1-2-3-4-5-6-7-8-9-10-11 AM (internally - Atmega8)
+12-1-2-3-4-5-6-7-8-9-10-11 PM
+
+00-01-02-03-04-05-06-07-08-09-10-11 AM (externally - DS1302)
+12-13-14-15-16-17-18-19-20-21-22-23 PM 
+*/ 
+
+byte latchPin = 13; 
+byte clockPin = 12; 
+byte dataPin = 11; 
+
+byte leds[10]={255,255,255,255,255,255,255,255,255,255};
+byte counter=0;
+
+
+void setup() {
+
+// setup I/O pins directly
+DDRD=0b11111111;
+DDRB=0b00111111;
+
+PORTD=0b11111111;
+PORTB=0b00001111; 
+}
+
+void loop() {
+
+
+//leds[0]=0; // this will turn on led  (1,11,21,31,41,51,61,71)  
+//leds[9]=0; // this will turn on led  (10,20,30,40,50,60,70,80) 
+
+//leds[0]=0b11111110; // this will turn on led 71;
+//leds[9]=0b01111111; // this will turn on led 10;
+
+for( byte x=0; x<10; x++){
+leds[x]=0x80; // this will turn on all led except led 1-10; because 0x80 is hex number it is 0b10000000;
+  }
+
+
+//----multiplexing code
+    
+     counter++;
+    if(counter==9) counter=1;
+ 
+  if (counter==1){
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }     
+
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000001);   
+    digitalWrite(latchPin, HIGH);  
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 7));
+}
+         
+  }   
+  
+  if (counter==2){  
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }      
+    
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000010);     
+    digitalWrite(latchPin, HIGH); 
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 6));
+} 
+  }   
+
+  if (counter==3){  
+
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00000100);     
+    digitalWrite(latchPin, HIGH);    
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 5));
+} 
+  }   
+
+  if (counter==4){ 
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }          
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00001000); 
+    digitalWrite(latchPin, HIGH);    
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 4));
+}           
+  }   
+
+  if (counter==5){   
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }          
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00010000);      
+    digitalWrite(latchPin, HIGH);  
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 3));
+}      
+  }   
+
+  if (counter==6){   
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B00100000); 
+    digitalWrite(latchPin, HIGH); 
+
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 2));
+}  
+  }   
+
+  if (counter==7){
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B01000000);      
+    digitalWrite(latchPin, HIGH);    
+    
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 1));
+}
+  }   
+
+  if (counter==8){  
+    
+  for(byte x=1; x<11; x++){
+digitalWrite(x,HIGH);
+ }        
+    digitalWrite(latchPin,LOW); 
+    shiftOut(dataPin, clockPin, MSBFIRST ,B10000000);    
+    digitalWrite(latchPin, HIGH);  
+    
+for(byte x=0;x<10;x++){
+    digitalWrite(1+x, bitRead(leds[x], 0));
+}    
+  }   
+}
