@@ -47,7 +47,7 @@ byte latchPin = 13;
 byte clockPin = 12; 
 byte dataPin = 11; 
 
-byte leds[10]={255,255,255,255,255,255,255,255,255,255};
+byte leds[10]={255,255,255,255,255,255,255,255,255,255}; // this 10 byte array is used to switch 80 leds; 10 byte X 8 bits=80;
 byte counter=0;
 
 
@@ -71,7 +71,7 @@ void loop() {
 //leds[9]=0b01111111; // this will turn on led 10;
 
 for( byte x=0; x<10; x++){
-leds[x]=0x80; // this will turn on all led except led 1-10; because 0x80 is hex number it is 0b10000000;
+leds[x]=0x80; // this will turn on all led except led 1-10; because 0x80 is ahex number and it is 0b10000000 in binary;
   }
 
 
