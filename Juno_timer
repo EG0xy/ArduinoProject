@@ -1,0 +1,122 @@
+/*
+ * PortD (D0-8) +s for 7segment + 1 dot
+ * PortC (A0-A3) -s for 4 digits
+ * PortB BP0-3 (D8-11) for 4 buttons;
+ * PortB BP5 (D13) For a LED
+ * 
+ * Flyandance June 2016
+ */
+
+
+#include <button.h>
+button a (8);
+button b (9);
+button c (10);
+button d (11);
+
+   const byte digit[] = //digit mapping
+    {
+   //HGFEDCBA  
+    B00111111, // 0
+    B00000110, // 1
+    B01011011, // 2
+    B01001111, // 3
+    B01100110, // 4
+    B01101101, // 5
+    B01111101, // 6
+    B00000111, // 7
+    B01111111, // 8
+    B01101111, // 9
+    B00000000, // BLANK
+    B10000000  }; //dot
+
+int ta, tb, tc, td;
+byte tsec,tmin,thr;
+byte d1,d2,d3,d4;
+byte counter;
+byte mode=0;
+bool tog;
+
+void setup() {
+  DDRD=0b11111111; 
+  DDRB=0b00100000;  
+  DDRC=0b00001111;
+}
+
+
+void loop() {
+
+digitalWrite (13, tog);
+  
+ a.buttonWatchbot();
+ b.buttonWatchbot();
+ c.buttonWatchbot();
+ d.buttonWatchbot();
+
+
+if(a.br==1){thr--;}
+if(b.br==1){thr++;}
+if(c.br==1){tmin--;}
+if(d.br==1){tmin++;}
+
+if(a.br==-1){}
+if(b.br==-1){}
+if(c.br==-1){}
+if(d.br==-1){tsec==0;}
+
+// Time logic
+ta=millis();
+if(ta-tb>=1000){
+tsec++;  
+tog=!tog;
+tb=ta;
+  }
+
+if(tsec==60){tsec=0; tmin++;}
+if(tmin==60){tmin=0; thr++;}
+if(tmin==255){ tmin=59;}
+
+if(thr==13){thr=1;}
+if(thr==0){ thr=12;}
+
+d1= digit[thr/10];
+d2= digit[thr%10];
+d3= digit[tmin/10];
+d4= digit[tmin%10];  
+
+
+// display output
+tc=millis();
+if(tc-td >= 1){
+  
+  counter++;
+  if(counter==4) counter=0;
+
+  if(counter==0){
+   PORTC=0b00001111;  
+   PORTD=d1;
+   PORTC=0b00001110;  
+    }  
+
+  if(counter==1){
+   PORTC=0b00001111;  
+   PORTD=d2;
+   PORTC=0b00001101;  
+    }  
+
+  if(counter==2){
+   PORTC=0b00001111;  
+   PORTD=d3;
+   PORTC=0b00001011;  
+    }  
+
+  if(counter==3){
+   PORTC=0b00001111;  
+   PORTD=d4;
+   PORTC=0b00000111;  
+    }              
+
+  td=tc;
+  }
+ 
+}
