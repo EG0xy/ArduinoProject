@@ -1,0 +1,404 @@
+ne/*G0, G1, G2: 3 buttons (active low)
+ *PortA-PortE: 5 anodes (A,B=hr; C,D=min; E=sec)
+ *PortF commond grounds cathod (multiplexing)
+ 2016-June-19 Flyandance
+ */
+
+
+boolean tog=0;
+byte thr=12;
+byte tmin=34;
+byte tsec=50;
+
+byte a,b,c,d;
+
+uint16_t counter;
+uint8_t m;
+
+uint8_t leda[8];
+uint8_t ledb[8];
+uint8_t ledc[8];
+uint8_t ledd[8];
+uint8_t lede[8];
+
+uint8_t secdot[8];
+uint8_t corna[8]={0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+uint8_t cornb[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01};
+uint8_t cornc[8]={0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+uint8_t cornd[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x80};
+
+uint8_t dig[14][8]={
+{0x00,0x00,0x3c,0x42,0x42,0x3c,0x00,0x00}, //0
+{0x00,0x00,0x44,0x42,0x7e,0x40,0x00,0x00}, //1
+{0x00,0x00,0x64,0x52,0x4a,0x44,0x00,0x00}, //2
+{0x00,0x00,0x42,0x4a,0x4a,0x34,0x00,0x00}, //3
+{0x00,0x00,0x18,0x14,0x7e,0x10,0x00,0x00}, //4
+{0x00,0x00,0x4e,0x4a,0x4a,0x30,0x00,0x00}, //5
+{0x00,0x00,0x3c,0x4a,0x4a,0x30,0x00,0x00}, //6
+{0x00,0x00,0x02,0x02,0x7a,0x06,0x00,0x00}, //7
+{0x00,0x00,0x34,0x4a,0x4a,0x34,0x00,0x00}, //8
+{0x00,0x00,0x0c,0x52,0x52,0x3c,0x00,0x00}, //9
+{0xff,0x81,0x81,0xbd,0x91,0xbd,0x81,0x81}, //10-h
+{0x81,0x81,0xbd,0x89,0x85,0x81,0x81,0xff}, //11-r
+{0xff,0x81,0xbd,0x89,0x91,0x89,0xbd,0x81}, //12-m
+{0xbd,0x81,0xbd,0x89,0x91,0xbd,0x81,0xff}  // 13-in
+};
+
+
+uint8_t digo[14][8]={
+{0x0, 0x3c, 0x42, 0x42, 0x42, 0x42, 0x3c, 0x0}, //0
+{0x0, 0x40, 0x40, 0x44, 0x42, 0x7e, 0x40, 0x0}, //1
+{0x0, 0x4c, 0x42, 0x62, 0x52, 0x52, 0x4c, 0x0}, //2
+{0x0, 0x24, 0x42, 0x42, 0x4a, 0x4a, 0x3c, 0x0}, //3
+{0x0, 0x20, 0x30, 0x28, 0x24, 0x7e, 0x20, 0x0}, //4
+{0x0, 0x4e, 0x4a, 0x4a, 0x4a, 0x4a, 0x30, 0x0}, //5
+{0x0, 0x30, 0x48, 0x44, 0x52, 0x52, 0x22, 0x0}, //6
+{0x0, 0x2, 0x2, 0x2, 0x72, 0xa, 0x6, 0x0}, //7
+{0x0, 0x34, 0x4a, 0x4a, 0x4a, 0x4a, 0x34, 0x0}, //8
+{0x0, 0xc, 0x12, 0x12, 0x12, 0x12, 0x6c, 0x0}, //9
+{0xff,0x81,0x81,0xbd,0x91,0xbd,0x81,0x81}, //10-h
+{0x81,0x81,0xbd,0x89,0x85,0x81,0x81,0xff}, //11-r
+{0xff,0x81,0xbd,0x89,0x91,0x89,0xbd,0x81}, //12-m
+{0xbd,0x81,0xbd,0x89,0x91,0xbd,0x81,0xff}  // 13-in
+};
+
+uint8_t digx[14][8]={
+{0x0, 0x7e, 0x42, 0x42, 0x42, 0x42, 0x7e, 0x0}, //0
+{0x0, 0x0, 0x0, 0x0, 0x7e, 0x7e, 0x0, 0x0}, //1
+{0x0, 0x70, 0x52, 0x52, 0x52, 0x52, 0x5e, 0x0}, //2
+{0x0, 0x40, 0x42, 0x4a, 0x4a, 0x4a, 0x7e, 0x0}, //3
+{0x0, 0x1e, 0x10, 0x10, 0x10, 0x10, 0x7e, 0x0}, //4
+{0x0, 0x4e, 0x4a, 0x4a, 0x4a, 0x4a, 0x78, 0x0}, //5
+{0x0, 0x7e, 0x52, 0x52, 0x52, 0x52, 0x70, 0x0}, //6
+{0x0, 0x2, 0x2, 0x2, 0x2, 0x2, 0x7e, 0x0}, //7
+{0x0, 0x7e, 0x4a, 0x4a, 0x4a, 0x4a, 0x7e, 0x0}, //8
+{0x0, 0x1e, 0x12, 0x12, 0x12, 0x12, 0x7e, 0x0}, //9
+{0xff,0x81,0x81,0xbd,0x91,0xbd,0x81,0x81}, //10-h
+{0x81,0x81,0xbd,0x89,0x85,0x81,0x81,0xff}, //11-r
+{0xff,0x81,0xbd,0x89,0x91,0x89,0xbd,0x81}, //12-m
+{0xbd,0x81,0xbd,0x89,0x91,0xbd,0x81,0xff}  // 13-in
+};
+
+
+  uint8_t Now_bReadsa;
+  uint8_t Last_bReada=0;
+  uint8_t buttonStatea;
+  int8_t button_Countera;
+  uint16_t tpasta;
+  int8_t bra; 
+
+  uint8_t Now_bReadsb;
+  uint8_t Last_bReadb=0;
+  uint8_t buttonStateb;
+  int8_t button_Counterb;
+  uint16_t tpastb;
+  int8_t brb; 
+
+  uint8_t Now_bReadsc;
+  uint8_t Last_bReadc=0;
+  uint8_t buttonStatec;
+  int8_t button_Counterc;
+  uint16_t tpastc;
+  int8_t brc;   
+
+//=================
+
+int8_t tenk=1;
+  
+int8_t mode=0;
+
+int8_t dsmode=0;
+
+int8_t fontmode=0;
+
+int8_t saving=0;
+int8_t timer=0;
+//---------------------------------------------------------------------------------------------
+int main(void){
+DDRA=0xff;
+DDRB=0xff;
+DDRC=0xff;
+DDRD=0xff;
+
+DDRE=0xff;
+DDRF=0xff;
+
+DDRG=0x00;
+PORTG=0b00000111;
+
+  // timer 3, for various tasks
+   TCCR3B |= (1 << CS32)|(1 << CS30); // 8M/1024 prescaler=7812hz; 1/7812= 0.00012 second; 25ms/0.12=208 ticks
+
+   //timer 0, for super accurate time keeping, connected to 32k 5ppm crystal
+   TIMSK |= (1 << TOIE0);
+   TCCR0 |= (1 << CS02) ;   // 64 prescaler
+   //TCCR0 |= (1 << CS00) ;   // no prescaler to test the clock
+   ASSR |= (1<<AS0);   
+   sei();  
+
+//---------------------------------------------------------------------------------------------
+while(1) {
+
+if(saving==1){
+ MCUCR |= (1<<SM1);
+ MCUCR |= (1<<SE); 
+  }
+
+if(timer>=4){saving=1;}
+  
+
+ba(); 
+bb(); 
+bc(); 
+
+if(bra==1){mode++;}
+if(bra==-1){tenk=!tenk;}
+
+if(brb==-1){}
+if(brc==-1){}
+
+//-------------
+if(mode==0){
+a=thr/10;
+b=thr%10;
+c=tmin/10;
+d=tmin%10;
+  
+if(brb==1){dsmode=!dsmode; for(byte x=0;x<8;x++){secdot[x]=0x00; }}
+if(brc==1){fontmode++;} 
+
+if(fontmode==4) {fontmode=0;}
+
+
+if(brb==-1){tsec=0;}
+   
+  }
+
+
+if(mode==1){
+a=12;
+b=13;
+c=tmin/10;
+d=tmin%10;
+  
+if(brb==1){tmin--;}
+if(brc==1){tmin++;}    
+  }
+  
+
+if(mode==2){
+a=thr/10;
+b=thr%10;
+c=10;
+d=11;
+  
+if(brb==1){thr--;}
+if(brc==1){thr++;}    
+  }  
+
+
+if(mode==3)mode=0; 
+
+
+
+if(tenk==1){
+DDRA=0xff;
+DDRB=0xff;
+DDRC=0xff;
+DDRD=0xff; 
+DDRE=0xff;  
+  }
+
+if(tenk==0){
+DDRA=0x00;
+DDRB=0x00;
+DDRC=0x00;
+DDRD=0x00; 
+DDRE=0x00;  
+  }
+  
+
+if(tsec==60){tmin++; tsec=0;}  
+if(tmin==60){thr++; tmin=0;}   
+if(thr==13){thr=1;} 
+
+if(thr==0)thr=12; 
+if(tmin==255)tmin=59;
+
+
+//------ second display
+if(dsmode==0){
+if(tsec<=56) secdot[tsec/8] = 1<<(tsec%8);     
+if(tsec>56 && tsec<59) secdot[tsec/8] = 1<<((tsec%8)*2);   
+if(tsec==59) secdot[7] = 1<<(7);    
+
+if(tsec==0) {
+for(byte x=0;x<8;x++){secdot[x]=0x00; secdot[0]=0x01;}  
+  }
+}
+
+if(dsmode==1){
+if(tsec<=56) secdot[tsec/8] |= 1<<(tsec%8);
+if(tsec==57) secdot[7] = 0b00000111; 
+if(tsec==58) secdot[7] = 0b00011111;      
+if(tsec==59) secdot[7] = 0b11111111;    
+
+
+if(tsec==0) {
+for(byte x=0;x<8;x++){secdot[x]=0x00; secdot[0]=0x01;}  
+  }  
+  
+  }
+
+
+
+//------ hr and minute display
+
+if(TCNT3-counter>=10){
+m++;  
+if(m==8){m=0;}
+
+PORTF=0xff; 
+if(fontmode==0){
+PORTA=dig[a][m] | corna[m];
+PORTB=dig[b][m] | cornb[m];
+PORTC=dig[c][m] | cornc[m];
+PORTD=dig[d][m] | cornd[m];}
+
+if(fontmode==1){
+PORTA=(digo[a][m]);
+PORTB=(digo[b][m]);
+PORTC=(digo[c][m]);
+PORTD=(digo[d][m]);}
+
+if(fontmode==2){
+PORTA=(digx[a][m]);
+PORTB=(digx[b][m]);
+PORTC=(digx[c][m]);
+PORTD=(digx[d][m]);}
+
+if(fontmode==3){
+PORTA=~(digx[a][m]);
+PORTB=~(digx[b][m]);
+PORTC=~(digx[c][m]);
+PORTD=~(digx[d][m]);}
+
+PORTE=secdot[m];
+
+PORTF= ~(1<<(m)); 
+
+counter=TCNT3;
+
+  }
+
+  
+
+ }
+}
+
+//---------------------------------------------------------------------------------------------
+//interrupt for timer 0 32khz
+ ISR (TIMER0_OVF_vect)
+{
+  tog=!tog;
+  if(tog==1)tsec++;
+  timer++;
+}
+
+
+//---------------------------------buttons;
+
+void ba(){
+    
+ Now_bReadsa= !!(PING & (1<<0));
+  
+  
+   if(Now_bReadsa!=Last_bReada){
+   tpasta=TCNT3;
+   }
+  
+  if(TCNT3-tpasta>210 && Now_bReadsa!=buttonStatea){
+      buttonStatea=Now_bReadsa; 
+      if(Now_bReadsa==0)button_Countera=1;
+    }
+
+
+  if(Now_bReadsa==1 && TCNT3-tpasta>210 ){
+    bra=button_Countera;
+    button_Countera=0;
+    }
+
+   if(Now_bReadsa==0 && TCNT3-tpasta>8000 ){
+    bra=-button_Countera;
+    button_Countera=0;
+    
+    }   
+
+    Last_bReada=Now_bReadsa;
+}
+
+
+//-----------------------
+
+
+void bb(){
+    
+ Now_bReadsb= !!(PING & (1<<1));
+  
+  
+   if(Now_bReadsb!=Last_bReadb){
+   tpastb=TCNT3;
+   }
+  
+  if(TCNT3-tpastb>210 && Now_bReadsb!=buttonStateb){
+      buttonStateb=Now_bReadsb; 
+      if(Now_bReadsb==0)button_Counterb=1;
+    }
+
+
+  if(Now_bReadsb==1 && TCNT3-tpastb>210 ){
+    brb=button_Counterb;
+    button_Counterb=0;
+    }
+
+   if(Now_bReadsb==0 && TCNT3-tpastb>8000 ){
+    brb=-button_Counterb;
+    button_Counterb=0;
+    
+    }   
+
+    Last_bReadb=Now_bReadsb;
+}
+
+//-----------------------
+
+
+void bc(){
+    
+ Now_bReadsc= !!(PING & (1<<2));
+  
+  
+   if(Now_bReadsc!=Last_bReadc){
+   tpastc=TCNT3;
+   }
+  
+  if(TCNT3-tpastc>210 && Now_bReadsc!=buttonStatec){
+      buttonStatec=Now_bReadsc; 
+      if(Now_bReadsc==0)button_Counterc=1;
+    }
+
+
+  if(Now_bReadsc==1 && TCNT3-tpastc>210 ){
+    brc=button_Counterc;
+    button_Counterc=0;
+    }
+
+   if(Now_bReadsc==0 && TCNT3-tpastc>8000 ){
+    brc=-button_Counterc;
+    button_Counterc=0;
+    
+    }   
+
+    Last_bReadc=Now_bReadsc;
+}
+
