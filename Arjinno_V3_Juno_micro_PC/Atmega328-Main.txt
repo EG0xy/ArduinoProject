@@ -1,0 +1,61 @@
+//Clock code for Arjinno V3-atmega328 (Master-LCD driver)
+// button-A3;
+
+#include <Wire.h>
+#include <stdio.h>
+#include <button.h>
+button key (A3);  
+
+char top[17];
+char bot[17];
+
+byte thr, tmin, tsec, tmsec;
+int ta,tb;
+
+void setup() {     
+Wire.begin();
+}
+
+
+void loop() {
+  
+key.buttonWatchdog();
+
+
+  if(key.br==1){thr--;}  
+  if(key.br==2){thr++;}   
+  if(key.br==3){tmin--;}   
+  if(key.br==4){tmin++;} 
+
+if(tmsec==10){tmsec=0;tsec++;}
+if(tsec==60){tsec=0; tmin++;}
+if(tmin==60){tmin=0; thr++;}  
+if(thr==13){thr=1;}
+
+if(tsec==255){tsec=59;}
+if(tmin==255){tmin=59;}
+if(thr==0){thr=12;}
+  
+//0123456789ABCDEF
+//time:xx:xx:xx:xx     
+sprintf(bot,"Time:%02d:%02d:%02d:%02d", thr, tmin, tsec,tmsec );
+  
+
+ta=millis();
+
+if(ta-tb>=100){
+  tmsec++;
+
+  Wire.beginTransmission(8); 
+  Wire.write("Hello---World :)"); 
+  Wire.write(bot);
+  Wire.endTransmission();
+    
+  tb=ta;
+  }
+  
+}
+
+
+
+

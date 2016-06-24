@@ -1,0 +1,59 @@
+//Clock code for Arjinno V3-atmega8 (slave-LCD driver)
+// LED 13, 12, 11, 10, 9, 8
+#include <LiquidCrystal.h> 
+LiquidCrystal lcd (8,9,10,11,12,13);
+#include <Wire.h>
+
+byte LCD = 3; 
+byte leda=5;
+byte ledb=6;
+
+int ta,tb;
+
+char top[16]; // first line of the LCD
+char bot[16]; // second line of the LCD
+
+//----------------------------------------------
+
+
+//----------------------------------------------
+ 
+void setup() {     
+  lcd.begin(16, 2);
+  pinMode (LCD, OUTPUT);
+  digitalWrite (LCD, HIGH);
+
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event    
+}
+
+void loop() {
+
+  ta=millis();
+  if(ta-tb>=1000){
+  //lcd.clear ();   
+  tb=ta;
+  }
+
+//--------------------------------------------------------
+
+  lcd.setCursor (0,0); 
+  lcd.write (top); 
+
+  lcd.setCursor (0,1); 
+  lcd.write (bot); 
+
+}
+
+void receiveEvent(int howMany) {
+
+  byte counter=0;
+  while ( Wire.available()) { 
+    if(counter<16) { top[counter] = Wire.read();}
+    
+    else { bot[counter-16] = Wire.read();}
+    
+    counter++;
+    }
+ 
+}
