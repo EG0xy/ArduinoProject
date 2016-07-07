@@ -1,5 +1,5 @@
 // Advance arduino Examples for Atmega8/168/328 (Mainly 8)
-// AVR memory addressing
+// AVR memory addressing  ( By Flyandance )
 // When you are doing digitalWrite (2, HIGH), you are turning on bit 2 in PORTD. or PORTD= 0b00000100;
 // Unlike a typical computer, where there are 5 elements: CPU, ALU, Input, Output, and Memory
 // An avr only has 3 element: CPU, ALU and Memory
