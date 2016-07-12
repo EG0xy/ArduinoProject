@@ -1,0 +1,178 @@
+//-----------------------------------------------------------
+//Arjinno Micro-PC V3 (Atmega8) I2C Slave
+// LCD 13, 12, 11, 10, 9, 8 || 2 LED d5, D6
+//-----------------------------------------------------------
+
+#include <LiquidCrystal.h> 
+LiquidCrystal lcd (8,9,10,11,12,13);
+#include <Wire.h>
+#include <stdio.h>
+
+byte lcd_Led = 3; 
+byte left_Led=5;
+byte right_Led=6;
+
+char top[16]; // first line of text on the LCD
+char bot[16]; // second line of text on the LCD
+
+//Use a byte to toggle on different settings
+byte setting=0b10000000; 
+//bit7 LCD backlight toggle
+//bit6 LCD clear.
+//bit5 left led input/output (In input mode, a 10k resistor is enabled, thus a dimmer led output)
+//bit4 left led HIGH/LOW
+//bit3 right led input/output
+//bit2 right led HIGH/LOW
+//bit1 reserved
+//bit0 when top/bot line is transmitted (0 for top/ 1 for bot)
+
+
+//Custom LCD Character
+byte timer[8] = {
+  0b00000,
+  0b11111,
+  0b01110,
+  0b00100,
+  0b00100,
+  0b01110,
+  0b11111,
+  0b00000
+};
+
+byte arrowUp[8] = {
+  0b00000,
+  0b00100,
+  0b01110,
+  0b11111,
+  0b00100,
+  0b01110,
+  0b01010,
+  0b00000
+};
+
+byte watch[8] = {
+  0b00000,
+  0b01110,
+  0b10001,
+  0b10101,
+  0b10111,
+  0b10001,
+  0b01110,
+  0b00000
+};
+
+byte alarm[8] = {
+  0b00000,
+  0b00100,
+  0b01110,
+  0b01110,
+  0b01110,
+  0b11111,
+  0b00100,
+  0b00000
+};
+
+byte arrowRight[8] = {
+  0b01000,
+  0b00100,
+  0b00110,
+  0b11111,
+  0b11111,
+  0b00110,
+  0b00100,
+  0b01000
+};
+
+byte smileFace[8] = {
+  0b00000,
+  0b01010,
+  0b01010,
+  0b01010,
+  0b00000,
+  0b10001,
+  0b01110,
+  0b00000
+};
+
+byte heart[8] = {
+  0b00000,
+  0b01010,
+  0b11111,
+  0b11111,
+  0b11111,
+  0b01110,
+  0b00100,
+  0b00000
+};
+//----------------------------------------------
+ 
+void setup() {     
+  lcd.begin(16, 2);
+  lcd.createChar(1, timer);
+  lcd.createChar(2, arrowUp);  
+  lcd.createChar(3, watch);  
+  lcd.createChar(4, alarm);  
+  lcd.createChar(5, arrowRight); 
+  lcd.createChar(6, smileFace); 
+  lcd.createChar(7, heart); 
+             
+  pinMode (lcd_Led, OUTPUT);
+  digitalWrite (lcd_Led, HIGH);
+
+  Wire.begin(8);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event    
+}
+
+//--- Main（）-----------------------------------------------------
+
+void loop() {
+
+
+  digitalWrite (lcd_Led, (setting & (1<<7) ));
+  
+  pinMode (left_Led, (setting & (1<<5) ));  
+  digitalWrite (left_Led, (setting & (1<<4) ));
+  pinMode (right_Led, (setting & (1<<3) ));  
+  digitalWrite (right_Led, (setting & (1<<2) ));
+
+  if(setting & 1<<6 ){  //whenever the lcd clear bit is 1
+    lcd.clear ();       //clear the lcd
+    setting &= ~(1<<6); //turn off lcd clear bit
+    }
+      
+//char test[16];
+//sprintf(test, "%c %c %c %c %c %c %c",1,2,3,4,5,6,7);
+
+  lcd.setCursor (0,0); 
+  lcd.write (top); 
+
+  lcd.setCursor (0,1); 
+  lcd.write (bot); 
+ 
+}
+
+
+//--------------------------------------------------------
+
+void receiveEvent(int howMany) {
+
+
+  while ( Wire.available()) {
+
+   setting=Wire.read();     
+
+    if(!(setting & (1<<0)) ){
+   for(byte c=0; c<16; c++){
+    top[c]=Wire.read();
+    }
+    }
+
+    if(setting & (1<<0) ){
+   for(byte c=0; c<16; c++){
+    bot[c]=Wire.read();
+    }
+    }
+
+    }
+ 
+}
