@@ -1,0 +1,87 @@
+//===========================================================
+//Arjinno Micro-PC V3 (Atmega328) I2C Master
+// 4 button:A3;
+//===========================================================
+
+#include <Wire.h>
+#include <stdio.h>
+#include <button.h>
+button key (A3);  
+
+//Custom LCD Character
+#define timer 1
+#define up 2
+#define watch 3
+#define alarm 4
+#define right 5
+#define smile 6
+#define heart 7
+
+//-- top[16]="0123456789ABCDEF";
+char top[17];
+char bot[17];
+
+byte setting=0b10000100; //Use a byte to toggle on different settings
+//bit7 LCD backlight toggle
+//bit6 LCD clear.
+//bit5 left led input/output (In input mode, a 10k resistor is enabled, thus a dimmer led output)
+//bit4 left led HIGH/LOW
+//bit3 right led input/output
+//bit2 right led HIGH/LOW
+//bit1 reserved
+//bit0 when top/bot line is transmitted (0 for top/ 1 for bot)
+
+byte thr, tmin, tsec, tmsec;
+int ta,tb;
+
+
+void setup() {     
+Wire.begin();
+}
+
+
+void loop() {
+  
+key.buttonWatchdog();
+
+
+  if(key.br==1){thr--;}  
+  if(key.br==2){thr++;}   
+  if(key.br==3){tmin--;}   
+  if(key.br==4){tmin++;} 
+
+if(tmsec==100){tmsec=0;tsec++; setting ^= (1<<4); setting ^= (1<<2);}
+if(tsec==60){tsec=0; tmin++;}
+if(tmin==60){tmin=0; thr++;}  
+if(thr==13){thr=1;}
+
+if(tsec==255){tsec=59;}
+if(tmin==255){tmin=59;}
+if(thr==0){thr=12;}
+  
+//0123456789ABCDEF
+//time:xx:xx:xx:xx 
+  
+sprintf(top,"Time:%02d:%02d:%02d:%02d", thr, tmin, tsec,tmsec );
+sprintf(bot,"Hello Ha %c%c%c%c%c%c%c",up,right,timer,watch,alarm,smile,heart  );
+  
+  Wire.beginTransmission(8); 
+  Wire.write(setting); 
+  if(!(setting & 1)) Wire.write(top);      
+  if(setting & 1) Wire.write(bot);    
+  Wire.endTransmission();
+
+  setting ^= 1;
+    
+ta=millis();
+
+if(ta-tb>=10){
+  tmsec++;
+  tb=ta;
+  }
+  
+}
+
+
+
+
