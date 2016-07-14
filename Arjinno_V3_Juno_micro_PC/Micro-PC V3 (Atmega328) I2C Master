@@ -18,8 +18,11 @@ button key (A3);
 #define heart 7
 
 //-- top[16]="0123456789ABCDEF";
-char top[17];
-char bot[17];
+char top[17]="                ";
+char bot[17]="                ";
+char space[17]="                ";
+char start[6]="Start";
+char stop[6]=" Stop";
 
 byte setting=0b10000100; //Use a byte to toggle on different settings
 //bit7 LCD backlight toggle
@@ -31,8 +34,15 @@ byte setting=0b10000100; //Use a byte to toggle on different settings
 //bit1 reserved
 //bit0 when top/bot line is transmitted (0 for top/ 1 for bot)
 
+byte topCursor, botCursor; // (0-15, which location to print text)
+
 byte thr, tmin, tsec, tmsec;
+byte ahr, amin, asec;
 int ta,tb;
+
+byte pos, cursor, countDown, finish,lcdLED, cc;
+
+byte mode;
 
 
 void setup() {     
@@ -45,12 +55,25 @@ void loop() {
 key.buttonWatchdog();
 
 
-  if(key.br==1){thr--;}  
-  if(key.br==2){thr++;}   
-  if(key.br==3){tmin--;}   
-  if(key.br==4){tmin++;} 
+  if(key.br==1){mode=!mode; cursor=0;}  
 
-if(tmsec==100){tmsec=0;tsec++; setting ^= (1<<4); setting ^= (1<<2);}
+
+// time logic
+if(tmsec>=100){
+  tmsec=0;tsec++; 
+  setting ^= (1<<4); setting ^= (1<<2); 
+  if(mode==0){pos++; if(pos==16)pos=0;}
+  cc++;
+  if(cc==8)cc=1;
+
+  if(countDown==1){asec--;}
+  if(finish==1){ setting ^= (1<<7);}
+  else setting |= (1<<7);   
+}
+
+   
+
+
 if(tsec==60){tsec=0; tmin++;}
 if(tmin==60){tmin=0; thr++;}  
 if(thr==13){thr=1;}
@@ -58,21 +81,68 @@ if(thr==13){thr=1;}
 if(tsec==255){tsec=59;}
 if(tmin==255){tmin=59;}
 if(thr==0){thr=12;}
+
+//-----------------------------
+if(asec==60){asec=0; }
+if(amin==60){amin=0;}  
+if(ahr==100){ahr=0;}
+
+if(countDown==1 && ahr==0 && amin==0 && asec==0){ countDown=0; finish=1;}
+
+
+if(asec==255){asec=59;amin--;}
+if(amin==255){amin=59;ahr--;}
+if(ahr==255){ahr=99;}
+
+
   
 //0123456789ABCDEF
+//Countdown Start
 //time:xx:xx:xx:xx 
+
+  if(countDown==1){setting |= (1<<3) | (1<<5);}
+  else {setting &= ~((1<<3) | (1<<5));}  
+//--------------------------------------------
+if(mode==0){  
+ sprintf(top,"%c %02d:%02d:%02d:%02d  %c", watch, thr, tmin, tsec,tmsec, cc );
+
+
+if(cursor==0){  strncpy(bot,space,16); bot[pos]=right;}
+if(cursor==1){  strncpy(bot,space,16); bot[3]=up;  if(key.br==2){thr++;}  if(key.br==3){thr--;}   }
+if(cursor==2){  strncpy(bot,space,16); bot[6]=up;  if(key.br==2){tmin++;}  if(key.br==3){tmin--;}  }
+if(cursor==3){  strncpy(bot,space,16); bot[9]=up;  if(key.br==2){tsec++;}  if(key.br==3){tsec--;}  }
+
+if(key.br==4){cursor++; if(cursor==4)cursor=0;} 
   
-sprintf(top,"Time:%02d:%02d:%02d:%02d", thr, tmin, tsec,tmsec );
-sprintf(bot,"Hello Ha %c%c%c%c%c%c%c",up,right,timer,watch,alarm,smile,heart  );
+}
+
+if(mode==1){  
+ sprintf(top,"%cAlarm %c%02d:%02d:%02d", alarm,timer, ahr, amin, asec);
+if(cursor==0){ 
+  if(countDown==0) sprintf(bot,"Countdown  %s",start);  
+  if(countDown==1) sprintf(bot,"Countdown  %s",stop);  
+  if(key.br==2){ahr=0; amin=0;asec=0;countDown=0;finish=0;} } if(key.br==3){countDown=!countDown;} 
+
+if(cursor==1){  strncpy(bot,space,16); bot[9]=up;  if(key.br==2){ahr++;}  if(key.br==3){ahr--;}   }
+if(cursor==2){  strncpy(bot,space,16); bot[12]=up;  if(key.br==2){amin++;}  if(key.br==3){amin--;}  }
+if(cursor==3){  strncpy(bot,space,16); bot[15]=up;  if(key.br==2){asec++;}  if(key.br==3){asec--;}  }
+
+if(key.br==4){cursor++; if(cursor==4)cursor=0;} 
+}
+
+//--------------------------------------------
   
   Wire.beginTransmission(8); 
-  Wire.write(setting); 
+  Wire.write(setting);
+  Wire.write(topCursor); 
+  Wire.write(botCursor); 
   if(!(setting & 1)) Wire.write(top);      
-  if(setting & 1) Wire.write(bot);    
+  if(setting & 1) Wire.write(bot);   
+   
   Wire.endTransmission();
-
   setting ^= 1;
-    
+  
+
 ta=millis();
 
 if(ta-tb>=10){
