@@ -26,6 +26,7 @@ byte setting=0b10000000;
 //bit1 reserved
 //bit0 when top/bot line is transmitted (0 for top/ 1 for bot)
 
+byte topCursor, botCursor; // (0-15, which location to print text)
 
 //Custom LCD Character
 byte timer[8] = {
@@ -143,10 +144,10 @@ void loop() {
 //char test[16];
 //sprintf(test, "%c %c %c %c %c %c %c",1,2,3,4,5,6,7);
 
-  lcd.setCursor (0,0); 
+  lcd.setCursor (topCursor,0); 
   lcd.write (top); 
 
-  lcd.setCursor (0,1); 
+  lcd.setCursor (botCursor,1); 
   lcd.write (bot); 
  
 }
@@ -160,6 +161,8 @@ void receiveEvent(int howMany) {
   while ( Wire.available()) {
 
    setting=Wire.read();     
+   topCursor=Wire.read();
+   botCursor=Wire.read();
 
     if(!(setting & (1<<0)) ){
    for(byte c=0; c<16; c++){
