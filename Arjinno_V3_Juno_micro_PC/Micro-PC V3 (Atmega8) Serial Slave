@@ -1,0 +1,46 @@
+//===========================================================
+//Arjinno Micro-PC V3 (Atmega8) Serial Slave
+//Receiving 16 characters from Atmega328 to Atmega8 to the LCD
+//Connect [TX From Atmega328] pin to [D0(RX) from atmega8] Pin
+//===========================================================
+
+include <LiquidCrystal.h> 
+LiquidCrystal lcd (8,9,10,11,12,13);
+
+char incoming[18];
+byte c;
+
+void setup() {     
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+               
+  pinMode (3, OUTPUT);
+  digitalWrite (3, HIGH);
+}
+
+void loop() {
+
+  lcd.setCursor (0,0); 
+  lcd.print ("Hello World!!!!!"); 
+
+if( incoming[16]== '\n'){
+  lcd.setCursor (0,1); 
+  lcd.print (incoming); }
+
+else {
+  lcd.setCursor (0,1); 
+  lcd.print ("Nothing Boss    "); }
+   
+
+
+    c=0;
+        
+    while ( Serial.available()) {
+    incoming[c]=Serial.read();
+    c++;    
+    delay(1);
+
+    }
+    
+
+}
