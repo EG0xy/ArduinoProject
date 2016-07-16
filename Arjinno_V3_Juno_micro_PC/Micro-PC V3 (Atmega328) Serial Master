@@ -1,6 +1,7 @@
 //===========================================================
 //Arjinno Micro-PC V3 (Atmega328) Serial Master
 // Sending 16 characters from Atmega328 to Atmega8 to the LCD
+//Connect [TX From Atmega328] pin to [D0(RX) from atmega8] Pin
 //===========================================================
 
 byte top[19]="0123456789012345\n"; 
