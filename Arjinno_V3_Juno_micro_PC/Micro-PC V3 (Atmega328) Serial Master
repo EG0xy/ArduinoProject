@@ -1,0 +1,32 @@
+//===========================================================
+//Arjinno Micro-PC V3 (Atmega328) Serial Master
+// Sending 16 characters from Atmega328 to Atmega8 to the LCD
+//===========================================================
+
+byte top[19]="0123456789012345\n"; 
+byte bot[19]="ZXCVBNM<ASDFGHJK\0"; 
+int ta,tb;
+byte m;
+
+void setup() {     
+    Serial.begin(9600);  
+
+}
+
+void loop() {
+
+  ta=millis();
+  if(ta-tb>=500){
+
+  if(m==0){Serial.write (top,17);}
+  if(m==1){Serial.write (bot,17);}
+  m=!m;
+    
+  tb=ta;
+        }
+
+  
+
+    
+
+}
