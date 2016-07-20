@@ -1,0 +1,164 @@
+/*
+Battery Tester-Atmega8 Juno mod 2016
+
+A5= shunt resistor reading (current)
+A4= Battery reading
+9= Power trans switch
+
+cut out voltage
+ if(voltage<2.7) 
+
+Circuit:  
+gnd:(1ohm):A5:(sw):A4:(+battery-):gnd
+                D9
+
+*/
+
+//==================================================
+#include <Wire.h>
+#include <LiquidCrystal.h>
+#include <button.h>
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+
+button ba(A0);
+button bb(A1);
+button bc(A2);
+
+char top[17];
+char bot[17];
+
+boolean sw, mm;
+
+char volt[5];
+
+int ma, bv, mohm, ta, tb, mah;
+
+float inVolt,lastVolt;
+
+byte thr, tmin,tsec, tog, discharge = 2;
+
+unsigned long mw;
+
+byte OH[8] = {
+  0b00000,
+  0b00000,
+  0b01110,
+  0b01010,
+  0b01010,
+  0b11011,
+  0b00000,
+  0b00000
+};
+
+byte MA[8] = {
+  0b00010,
+  0b00100,
+  0b01000,
+  0b00100,
+  0b00010,
+  0b00100,
+  0b01000,
+  0b00000
+};
+
+byte BT[8] = {
+  0b01110,
+  0b11111,
+  0b10001,
+  0b11111,
+  0b10001,
+  0b11111,
+  0b10001,
+  0b11111
+};
+
+byte IN [8] = {
+  0b11101,
+  0b11011,
+  0b10111,
+  0b11011,
+  0b11101,
+  0b11011,
+  0b10111,
+  0b11111
+};
+
+
+
+//==================================================
+
+void setup() {
+  lcd.begin(16,2);
+  analogReference (INTERNAL);  //2.56v for atmega8
+
+  lcd.createChar(1, OH);
+  lcd.createChar(2, MA);
+  lcd.createChar(3, BT);    
+  lcd.createChar(4, IN);    
+  
+  pinMode (0, OUTPUT); //LCD    
+  digitalWrite (0, 1);   
+
+  DDRB=0b00000011; 
+}
+
+void loop() {
+  ba.buttonWatchbot();
+  bb.buttonWatchbot(); 
+  bc.buttonWatchbot();
+  
+  digitalWrite (9, sw); // discharge transistor
+  digitalWrite (8, mm); // mode for different battery
+  
+  if(ba.br==1){  mm=!mm; } 
+  if(bb.br==1){ mw=0; mah=0; thr=0;tmin=0;tsec=0;sw=0; }  
+  if(bc.br==1){ sw=!sw; }   
+
+//0123456789ABCDEF
+//V0:00 M000 A0000
+//0:00:00 Mah:0000
+
+   dtostrf(inVolt, 4, 2, volt);
+   sprintf(top, "%c%s %c%03d %c%04d",3,volt,1,mohm,discharge,ma);
+   sprintf(bot, "%01d:%02d:%02d mAh:%04d",thr, tmin, tsec, mah);
+    
+    lcd.setCursor (0,0); 
+    lcd.print (top);
+     
+    lcd.setCursor (0,1); 
+    lcd.print (bot);        
+
+//------------------------------------
+
+    if(tog==0){discharge=2;}
+    else {discharge=4;}
+    
+    if(sw==1) { mohm = ( (lastVolt-inVolt) *1000000.0 / ma); }
+    if(sw==0) { lastVolt= inVolt; }
+
+    if(inVolt<2.7 && mm==0) {sw=0;}
+    if(inVolt<0.9 && mm==1) {sw=0;}
+        
+    if(mohm >999) {mohm=999;}
+
+    if(tsec==60){tsec=0;tmin++;}
+    if(tmin==60) {tmin=0;thr++;}
+    
+//------------------------------------
+    ta=millis();
+    if(ta-tb>=1000){
+      if(sw==1){tsec++; PORTB ^= 0b00111100; tog=!tog;}
+      else { PORTB =0; tog=0;}
+      
+      ma= (analogRead (A5)/1024.0)*2.56*1000.0; 
+      
+      bv=analogRead (A4);
+      inVolt=(bv/1024.0)*2.56*4.7;
+      
+      mw=mw+(ma*inVolt);
+      mah=(mw/3.7)/3600;
+       
+      tb=ta;
+      }
+
+}
