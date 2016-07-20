@@ -140,7 +140,8 @@ void loop() {
     if(inVolt<0.9 && mm==1) {sw=0;}
         
     if(mohm >999) {mohm=999;}
-
+    if(mohm <0) {mohm=0;}
+    
     if(tsec==60){tsec=0;tmin++;}
     if(tmin==60) {tmin=0;thr++;}
     
